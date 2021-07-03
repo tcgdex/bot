@@ -6,6 +6,7 @@ import Message from './Message'
  */
 export default class MessageManager {
 	public static async processCommand(command: Command, inputs: Inputs, action: 'message' | 'slash' | 'button'): Promise<Message> {
+		console.log('Running command', command.definition.name, ...inputs.args)
 		const result = await this.getCommandFunction(command, action)(inputs)
 		if (typeof result === 'string') {
 			return new Message(result)

@@ -84,10 +84,6 @@ client.on('interaction', async (interaction) => {
 	// handle buttons and selects
 	if (interaction.isMessageComponent()) {
 
-
-
-		console.log(interaction)
-
 		// Defer to allow completion and edition
 		await interaction.defer()
 
@@ -114,7 +110,6 @@ client.on('interaction', async (interaction) => {
 			const response = await MessageManager.processCommand(commands[command], inputs as Inputs, 'message')
 			msg.edit(response.toDiscordJS())
 		} catch (e) {
-			console.log(e)
 			msg.edit(ERROR_MESSAGE)
 		}
 		try {
