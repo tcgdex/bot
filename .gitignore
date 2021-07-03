@@ -1,0 +1,6 @@
+# Dev
+node_modules
+.env
+
+# Prod
+dist

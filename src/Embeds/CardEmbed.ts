@@ -1,0 +1,89 @@
+import { Card } from '@tcgdex/sdk'
+import Embed from '../Components/Embed'
+import { replaceTypesByEmojis } from '../Utils'
+
+/**
+ * Transform Card to Discord Embeds
+ */
+export default function(card: Card) {
+	const embed = new Embed()
+
+	const items = Object.keys(card)
+		.filter((item) => ![
+			'types', 'abilities', 'name', 'image',
+			'variants', 'legal', 'attacks', 'set',
+			'weaknesses', 'resistances', 'illustrator',
+			'id', 'localId', 'suffix', 'category'
+		].includes(item))
+	for (const field of items) {
+		const display = field.substr(0, 1).toUpperCase() + field.substr(1)
+		const value = card[field as 'name'] ?? '---'
+		if (Array.isArray(value)) {
+			embed.addField(display, replaceTypesByEmojis(value.join(', ')), true)
+		} else {
+			embed.addField(display, replaceTypesByEmojis(value.toString()), true)
+		}
+	}
+	// Title
+	let title = ''
+	if (card.stage) {
+		title += card.stage + ' '
+	}
+	if (card.types) {
+		title += replaceTypesByEmojis(card.types.join(' ')) + ' '
+	}
+	title += card.name
+	if (card.suffix && !card.name.endsWith(card.suffix))  {
+		title += ` ${card.suffix}`
+	}
+	if (card.hp) {
+		title += ` - HP${card.hp}`
+	}
+
+	// Other informations
+	if (card.localId) {
+		embed.addField('Identifier', `TCGdex ID: \`${card.id}\`\nCard number: \`${card.localId}\``, true)
+	}
+	if (card.image) {
+		embed.url(
+			card.image
+			.replace('assets.tcgdex.net/', 'www.tcgdex.net/database/')
+			.replace('/en/', '/')
+		)
+	}
+	if (card.abilities) {
+		embed.addField(
+			'Abilities',
+			card.abilities.map((a) => `${a.type} - **${a.name}**\n${a.effect}`).join('\n'),
+			false
+		)
+	}
+	if (card.attacks) {
+		embed.addField(
+			'Attacks',
+			card.attacks.map((a) => {
+				let text = ''
+				if (a.cost) {
+					text += replaceTypesByEmojis(a.cost?.join(' ')) + ' '
+				}
+				text += `**${a.name}**`
+				if (a.damage) {
+					text += ` - ${a.damage}`
+				}
+				if (a.effect) {
+					text += `\n${a.effect}`
+				}
+				return text
+			}).join('\n'),
+			false
+		)
+	}
+	embed
+		.author(card.illustrator, `${card.set.symbol}.png`)
+		.footer('TCGdex', 'https://www.tcgdex.net/favicon-32x32.png')
+		.image(`${card.image}/high.png`)
+		.title(title)
+		.addField('Set', card.set.name, true)
+
+	return embed
+}

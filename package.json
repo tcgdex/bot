@@ -1,0 +1,21 @@
+{
+	"private": true,
+	"dependencies": {
+		"@dzeio/object-util": "^1.2.0",
+		"@tcgdex/sdk": "^2.4.0",
+		"@types/node": "^15.12.5",
+		"discord.js": "^13.0.0-dev.a08ce7d.1625097834",
+		"dotenv": "^10.0.0",
+		"ts-node-dev": "^1.1.7",
+		"typescript": "^3.9.3",
+		"vercel": "^23.0.1"
+	},
+	"devDependencies": {
+		"ts-node": "^8.9.1"
+	},
+	"scripts": {
+		"start": "ts-node-dev src/index.ts",
+		"build": "tsc --project tsconfig.json",
+		"prod": "node dist/index.js"
+	}
+}
