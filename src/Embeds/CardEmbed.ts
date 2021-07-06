@@ -1,12 +1,13 @@
 import { Card } from '@tcgdex/sdk'
 import Embed from '../Components/Embed'
 import { replaceTypesByEmojis } from '../Utils'
+import BaseEmbed from './BaseEmbed'
 
 /**
  * Transform Card to Discord Embeds
  */
 export default function(card: Card) {
-	const embed = new Embed()
+	const embed = BaseEmbed()
 
 	const items = Object.keys(card)
 		.filter((item) => ![
@@ -78,10 +79,11 @@ export default function(card: Card) {
 			false
 		)
 	}
+	if (card.image) {
+		embed.image(`${card.image}/high.png`)
+	}
 	embed
 		.author(card.illustrator, `${card.set.symbol}.png`)
-		.footer('TCGdex', 'https://www.tcgdex.net/favicon-32x32.png')
-		.image(`${card.image}/high.png`)
 		.title(title)
 		.addField('Set', card.set.name, true)
 

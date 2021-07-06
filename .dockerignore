@@ -1,1 +1,4 @@
 node_modules
+
+# Ignore debug commands from prod bot
+src/Commands/debug.ts

@@ -1,10 +1,11 @@
-import { ApplicationCommand, Client, Guild, Intents, MessageOptions } from 'discord.js'
-import MessageManager from './Components/MessageManager'
+import { ApplicationCommandData, Client, Intents, MessageOptions } from 'discord.js'
 import { promises as fs } from 'fs'
-import { Command, Inputs } from './interfaces'
 import { config } from 'dotenv'
 import { objectEqual } from '@dzeio/object-util'
-import { posix as path} from 'path'
+import { posix as path } from 'path'
+import ApplicationCommand, { Inputs } from './Components/ApplicationCommand'
+import Message from './Components/Message'
+
 console.log('Loading...')
 
 // Fetch env
@@ -12,60 +13,64 @@ config()
 
 const PREFIX = process.env.PREFIX ?? 'TCGdex'
 
-const ERROR_MESSAGE: MessageOptions = {content: 'there was an error trying to execute that command!', embeds: [], components: []}
+const ERROR_MESSAGE = new Message('there was an error trying to execute that command!')
 
 // Load client
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES]})
 
 // Commands by their names
-const commands: Record<string, Command> = {}
+const commands: Record<string, ApplicationCommand> = {}
 
 // When client has loaded
 client.on('ready', async () => {
 	// Fetch commands
-	const files = await fs.readdir(path.join(__dirname, './Commands'))
+	const files = await fs.readdir(path.join(__dirname, './Commands')).then((f) => f.filter((v) => (v.endsWith('ts') || v.endsWith('js'))))
 
 	if (!client.application || !client.user) {
 		throw new Error('Client vars are not set')
 	}
 
 	// Fetch Discord loaded commands
-	const existingCommands: Record<string, ApplicationCommand> = {}
+	const existingCommands: Record<string, ApplicationCommandData> = {}
 	await client.application.commands.fetch().then((cmds) => cmds.forEach((c) => {
 		existingCommands[c.name] = c
 	}))
 
 	// Load commands
 	for (const file of files) {
-		const cmd: Command = (await import(`./Commands/${file}`)).default
+		const cmd: ApplicationCommand = new (await import(`./Commands/${file}`)).default()
+
+		// Validate commands
+		cmd.validate()
 
 		// Add command to memory
 		commands[cmd.definition.name] = cmd
 
 		// fill options with what Discord autofill
-		const options = cmd.definition.options?.map((o) => ({choices: undefined, options: undefined, ...o})) ?? []
+		const discordJSDefinition = cmd.definitionToDiscordJS()
+		const options = discordJSDefinition.options?.map((o) => ({choices: undefined, options: undefined, ...o})) ?? []
 
 		// check if we need to update the command on Discord
 		const needUpdate = existingCommands[cmd.definition.name] && !objectEqual({
 			name: existingCommands[cmd.definition.name].name,
 			description: existingCommands[cmd.definition.name].description,
 			options: existingCommands[cmd.definition.name].options
-		}, {...cmd.definition, options})
+		}, {...discordJSDefinition, options})
 
 		// Add missing slash commands
 		if (Object.keys(existingCommands).includes(cmd.definition.name) && needUpdate) {
 			console.log('Command', cmd.definition.name, 'Need to be updated')
-			await client.application.commands.set([cmd.definition])
+			await client.application.commands.set([discordJSDefinition])
 		} else if (!Object.keys(existingCommands).includes(cmd.definition.name)) {
 			console.log('Command', cmd.definition.name, 'Was not found, Adding to Discord')
-			await client.application.commands.create(cmd.definition)
+			await client.application.commands.create(discordJSDefinition)
 		}
 	}
 
 	// Fetch guilds count and display it
 	const size = await client.guilds.fetch()
 	client.user.setPresence({
-		activities: [{name: `${size.size} servers | TCGdex help`, type: "LISTENING"}]
+		activities: [{name: `${size.size} servers | ${PREFIX} help`, type: "LISTENING"}]
 	})
 
 	console.log(`Loaded, Logged in as ${client.user.tag}`)
@@ -84,9 +89,6 @@ client.on('interaction', async (interaction) => {
 	// handle buttons and selects
 	if (interaction.isMessageComponent()) {
 
-		// Defer to allow completion and edition
-		await interaction.defer()
-
 		// Get args and command
 		let args: Array<string> = []
 		args = interaction.customID.split(' ')
@@ -98,23 +100,19 @@ client.on('interaction', async (interaction) => {
 		const command = args.shift()
 		inputs.args = args
 
-		if (!interaction.channel || !command) {
+		if (!command) {
 			return
 		}
 
 		// Get the original message
-		const msg = await interaction.channel.messages.fetch(interaction.message.id)
 		try {
 
 			// Process and edit the original message
-			const response = await MessageManager.processCommand(commands[command], inputs as Inputs, 'message')
-			msg.edit(response.toDiscordJS())
+			const response = await commands[command].processCommand(inputs as Inputs, 'interaction')
+			interaction.update(response.toDiscordJS())
 		} catch (e) {
-			msg.edit(ERROR_MESSAGE)
+			interaction.update(ERROR_MESSAGE.toDiscordJS())
 		}
-		try {
-			await interaction.deleteReply()
-		} catch {}
 		return
 
 	// Process commands
@@ -126,11 +124,11 @@ client.on('interaction', async (interaction) => {
 		try {
 
 			// Process and reply to the message
-			const response = await MessageManager.processCommand(cmd, inputs as Inputs, 'message')
+			const response = await cmd.processCommand(inputs as Inputs, 'interaction')
 			interaction.reply(response.toDiscordJS())
 		} catch (e) {
 			console.error(e)
-			interaction.reply(ERROR_MESSAGE)
+			interaction.reply(ERROR_MESSAGE.toDiscordJS())
 		}
 		return
 	}
@@ -154,26 +152,34 @@ client.on('message', async (message) => {
 	}
 
 	// Get the command
-	const command = args.shift()?.toLowerCase()
+	const command = args.length > 0 ? args.shift()?.toLowerCase() : 'help'
 
 	// ignore message if the command does not exist
 	if (!command || !commands[command]) return;
 
+	const c = await message.channel.fetch()
+
 	// Handle command like a slash command
-	const msg = await message.reply('TCGdex is thinking...')
 	try {
-		// Process and edit the original message
-		const response = await MessageManager.processCommand(commands[command], {
-			commands,
-			args,
-			prefix,
-			client,
-			guild: message.guild
-		}, 'message')
-		await msg.edit(response.toDiscordJS())
-	} catch (error) {
-		console.error(error);
-		await msg.edit(ERROR_MESSAGE);
+		const msg = await message.reply('<a:typing:861888874404773888> Sending Command...')
+		try {
+			// Process and edit the original message
+			const response = await commands[command].processCommand({
+				commands,
+				args,
+				prefix,
+				client,
+				guild: message.guild
+			}, 'message')
+			await msg.edit(response.toDiscordJS())
+		} catch (error) {
+			console.error(error);
+			await msg.edit(ERROR_MESSAGE.toDiscordJS());
+		}
+	} catch (e) {
+		console.log(e)
+		console.log('User do not have the permission to write in this channel')
+		message.author.send('It seems I can\'t reply in the channel 😅, please contact an administrator or change my permissions to have `Send Messages`, `Read Message History` and `Use External Emojis`')
 	}
 });
 

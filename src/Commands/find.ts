@@ -1,31 +1,33 @@
-import TCGdex, { Set, SetResume } from '@tcgdex/sdk'
+import TCGdex, { SetResume } from '@tcgdex/sdk'
+import ApplicationCommand, { ApplicationCommandOptionType, Inputs } from '../Components/ApplicationCommand'
 import Message from '../Components/Message'
-import Select from '../Components/Select'
+import ActionRow from '../Components/MessageComponent/ActionRow'
+import Select from '../Components/MessageComponent/Select'
 import CardEmbed from '../Embeds/CardEmbed'
-import { Command } from '../interfaces'
 
-const cmd: Command = {
-	definition: {
+export default class Find extends ApplicationCommand {
+	public definition = {
 		name: 'find',
 		description: 'Find a card by it\'s name',
 		options: [{
 			name: 'name',
 			description: 'Card name',
 			required: true,
-			type: 'STRING'
+			type: ApplicationCommandOptionType.STRING
 		}, {
 			name: 'serie',
 			description: 'Filter with a defined serie',
 			required: false,
-			type: 'STRING'
+			type: ApplicationCommandOptionType.STRING
 		}, {
 			name: 'set',
 			description: 'Filter with a defined set',
 			required: false,
-			type: 'STRING'
+			type: ApplicationCommandOptionType.STRING
 		}],
-	},
-	async all({ client, args }) {
+	}
+
+	public async all({ client, args }: Inputs) {
 		const tcgdex = new TCGdex('en')
 		let serie: string
 		let set: SetResume
@@ -73,17 +75,26 @@ const cmd: Command = {
 			return 'Card not found :('
 		}
 
-		const s = new Select()
-			.customID('findbyid')
+		let s = new Select('findbyid')
+			.placeholder('Select the card you search')
+
+		const message = new Message()
+			.text('Select the correct card')
 
 		for (const iterator of filteredCards) {
-			s.option('add', `${sets.find((se) => iterator.id.replace(`-${iterator.localId}`, '').includes(se.id))?.name} - ${iterator.name}`.substr(0, 25), iterator.id)
+			if (s.option().length === 25) {
+				if (message.text().endsWith('card')) {
+					message.text(message.text() + '\n_lot of cards were found with this name, maybe an other research will give better results_')
+					s.placeholder('Select the card you search part 1')
+				}
+				message.addRow(new ActionRow(s))
+				s = new Select('findbyid')
+					.placeholder(`Select the card you search part ${message.row().length + 1}`)
+			}
+			s.addOption(`${iterator.name} - ${sets.find((se) => iterator.id.replace(`-${iterator.localId}`, '').includes(se.id))?.name}`.substr(0, 25), iterator.id)
 		}
 
-		return new Message()
-			.text('Select the correct card ')
-			.row('NEW', s)
+		return message
+			.addRow(new ActionRow(s))
 	}
 }
-
-export default cmd

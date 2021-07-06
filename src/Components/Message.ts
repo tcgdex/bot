@@ -1,16 +1,19 @@
 import { MessageOptions } from 'discord.js'
-import Button from './Button'
+import Button from './MessageComponent/Button'
 import Embed from './Embed'
-import Select from './Select'
+import Select from './MessageComponent/Select'
+import ActionRow from './MessageComponent/ActionRow'
+
+export type MessageComponents = Button | Select
 
 /**
  * Class to get/set a message
  */
 export default class Message {
-	
+
 	private _text: string
 	private embeds: Array<Embed> = []
-	private components: Array<Array<Button | Select>> = []
+	private components: Array<ActionRow> = []
 
 	public constructor(text?: string) {
 		this._text = text ?? ' '
@@ -26,10 +29,34 @@ export default class Message {
 		return this._text
 	}
 
-	public row(action: 'NEW' | number, ...buttons: Array<Button | Select>) {
-		this.components[action === 'NEW' ? this.components.length : action] = buttons
+	public row(): Array<ActionRow>
+	public row(index: number): ActionRow
+	public row(index?: number, ar?: ActionRow) {
+		if (!index) {
+			return this.components
+		}
+		if (!ar) {
+			return this.components[index]
+		}
+		if (!this.components[index]) {
+			throw new Error(`Nothing was added for this index (${index})`)
+		}
+		this.components[index] = ar
 		return this
 	}
+
+	public addRow(...ar: Array<ActionRow>): this {
+		if (this.components.length > 5) {
+			throw new Error('You can have more than 5 Action Rows per message')
+		}
+		this.components.push(...ar)
+		return this
+	}
+
+	public removeRow(index: number) {
+		this.components.splice(index, 1)
+	}
+
 
 	public embed(): Array<Embed>
 	public embed(embed: Embed, index?: number): this
@@ -49,7 +76,7 @@ export default class Message {
 		return {
 			content: this.text(),
 			embeds: this.embed().map((e) => e.toDiscordJS()),
-			components: this.components.map((r) => r.map((b) => b.toDiscordJS()))
+			components: this.components.map((r) => r.toDiscordJS())
 		}
 	}
 }
