@@ -13,7 +13,7 @@
 	<a href="https://github.com/tcgdex/discord/stargazers">
 		<img src="https://img.shields.io/github/stars/tcgdex/discord?style=flat-square" alt="Github stars">
 	</a>
-	<a href="https://discord.com/api/oauth2/authorize?client_id=467761222805225472&permissions=329728&scope=bot%20applications.commands">
+	<a href="https://discord.com/api/oauth2/authorize?client_id=465978667022024704&permissions=329728&scope=bot%20applications.commands">
 		<img src="https://img.shields.io/badge/Invite%20on-Discord-5865F2?style=flat-square" alt="Discord bot invite">
 	</a>
 </p>

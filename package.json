@@ -10,6 +10,8 @@
 		"typescript": "^3.9.3",
 		"vercel": "^23.0.1"
 	},
+	"repository": "https://github.com/tcgdex/discord.git",
+	"homepage": "https://github.com/tcgdex/discord",
 	"devDependencies": {
 		"ts-node": "^8.9.1"
 	},
