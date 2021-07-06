@@ -37,7 +37,6 @@ client.on('ready', async () => {
 	}))
 
 	// Load commands
-	console.log(files)
 	for (const file of files) {
 		if ((!file.endsWith('.ts') && !file.endsWith('.js'))) {
 			continue
@@ -70,7 +69,6 @@ client.on('ready', async () => {
 			await client.application.commands.create(discordJSDefinition)
 		}
 	}
-	console.log(commands)
 
 	// Fetch guilds count and display it
 	const size = await client.guilds.fetch()
