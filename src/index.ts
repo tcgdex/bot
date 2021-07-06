@@ -38,6 +38,9 @@ client.on('ready', async () => {
 
 	// Load commands
 	for (const file of files) {
+		if (!['ts', 'js'].includes(file)) {
+			continue
+		}
 		const cmd: ApplicationCommand = new (await import(`./Commands/${file}`)).default()
 
 		// Validate commands
