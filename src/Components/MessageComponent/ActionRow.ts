@@ -1,4 +1,4 @@
-import { MessageActionRow, MessageActionRowOptions } from 'discord.js'
+import { MessageActionRowOptions } from 'discord.js'
 import MessageComponent, { MessageComponentStructure, MessageComponentType } from '.'
 
 export interface ActionRowStructure extends MessageComponentStructure {

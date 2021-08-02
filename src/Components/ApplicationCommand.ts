@@ -65,12 +65,13 @@ export default abstract class ApplicationCommand {
 		switch (action) {
 			case 'message':
 				fn = this.messageCommand
-				break;
+				break
 			case 'interaction':
 				fn = this.interactionCommand
+				break
 			default:
 				fn = this.all
-				break;
+				break
 		}
 		if (!fn && !this.all) {
 			throw new Error('Command could not be executed!')
@@ -163,7 +164,7 @@ export default abstract class ApplicationCommand {
 	}
 
 	private optionsToDiscordJS(options: Array<ApplicationCommandOptionStructure>): Array<ApplicationCommandOptionData> {
-		return this.definition.options.map((o) => ({
+		return options.map((o) => ({
 			...o,
 			type: this.typeToDiscordJS(o.type),
 			options: o.options ? this.optionsToDiscordJS(o.options) : undefined

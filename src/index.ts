@@ -1,4 +1,4 @@
-import { ApplicationCommandData, Client, Intents, MessageOptions } from 'discord.js'
+import { ApplicationCommandData, Client, Intents } from 'discord.js'
 import { promises as fs } from 'fs'
 import { config } from 'dotenv'
 import { objectEqual } from '@dzeio/object-util'
@@ -38,7 +38,7 @@ client.on('ready', async () => {
 
 	// Load commands
 	for (const file of files) {
-		if ((!file.endsWith('.ts') && !file.endsWith('.js'))) {
+		if (!file.endsWith('.ts') && !file.endsWith('.js')) {
 			continue
 		}
 		const cmd: ApplicationCommand = new (await import(`./Commands/${file}`)).default()
@@ -80,7 +80,7 @@ client.on('ready', async () => {
 })
 
 // Handle Slash commands
-client.on('interaction', async (interaction) => {
+client.on('interactionCreate', async (interaction) => {
 	// prepare input
 	const inputs: Partial<Inputs> = {
 		commands,
@@ -94,7 +94,7 @@ client.on('interaction', async (interaction) => {
 
 		// Get args and command
 		let args: Array<string> = []
-		args = interaction.customID.split(' ')
+		args = interaction.customId.split(' ')
 
 		if (interaction.isSelectMenu()) {
 			args.push(...(interaction.values ?? []))
@@ -139,7 +139,7 @@ client.on('interaction', async (interaction) => {
 
 })
 
-client.on('message', async (message) => {
+client.on('messageCreate', async (message) => {
 	// Ignore message by bots
 	if (message.author.bot) {
 		return
@@ -147,11 +147,17 @@ client.on('message', async (message) => {
 
 	// Get the prefix
 	const args = message.content.trim().split(/ +/)
-	const prefix = args.shift()
+	let prefix = args.shift()
 
 	// ignore message not started by the bot's name or PREFIX
 	if (!prefix || !client.user || !(prefix.toLowerCase() === PREFIX.toLowerCase()) && !(prefix === `<@!${client.user.id}>`)) {
 		return
+	}
+
+	// Replace ths client user id by the username so it's easier to read
+	if (prefix === `<@!${client.user.id}>`) {
+		//TODO: get the server nickname instead of the global username
+		prefix = `@${client.user.username}`
 	}
 
 	// Get the command
@@ -159,8 +165,6 @@ client.on('message', async (message) => {
 
 	// ignore message if the command does not exist
 	if (!command || !commands[command]) return;
-
-	const c = await message.channel.fetch()
 
 	// Handle command like a slash command
 	try {

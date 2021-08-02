@@ -1,4 +1,4 @@
-import { MessageSelectMenuOptions, MessageSelectOptionData } from 'discord.js'
+import { MessageSelectMenuOptions } from 'discord.js'
 import MessageComponent, { MessageComponentStructure } from '.'
 import { PartialEmojiStructure } from '../Emoji'
 
@@ -71,7 +71,7 @@ export default class Select extends MessageComponent<SelectStructure> {
 	public toDiscordJS(): MessageSelectMenuOptions {
 		return {
 			type: 3,
-			customID: this.definition.custom_id,
+			customId: this.definition.custom_id,
 			maxValues: this.definition.max_values,
 			minValues: this.definition.min_value,
 			placeholder: this.definition.placeholder,

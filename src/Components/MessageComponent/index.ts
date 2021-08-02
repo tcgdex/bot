@@ -8,10 +8,6 @@ export interface MessageComponentStructure {
 	type: MessageComponentType
 }
 
-interface ButtonStructure extends MessageComponentStructure {
-
-}
-
 export default abstract class MessageComponent<T extends MessageComponentStructure = MessageComponentStructure> {
 
 	public definition: T = {} as any

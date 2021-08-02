@@ -20,7 +20,7 @@ export default class FindById extends ApplicationCommand {
 		}],
 	}
 
-	public async all({ client, args }: Inputs) {
+	public async all({ args }: Inputs) {
 		const tcgdex = new TCGdex('en')
 		const res = await tcgdex.fetchCard(args.shift() ?? '', args.join(' '))
 

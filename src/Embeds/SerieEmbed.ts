@@ -1,5 +1,4 @@
-import { Serie, Set } from '@tcgdex/sdk'
-import Embed from '../Components/Embed'
+import { Serie } from '@tcgdex/sdk'
 import BaseEmbed from './BaseEmbed'
 
 export default function(serie: Serie) {

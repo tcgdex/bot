@@ -1,5 +1,4 @@
 import { Card } from '@tcgdex/sdk'
-import Embed from '../Components/Embed'
 import { replaceTypesByEmojis } from '../Utils'
 import BaseEmbed from './BaseEmbed'
 
@@ -14,7 +13,7 @@ export default function(card: Card) {
 			'types', 'abilities', 'name', 'image',
 			'variants', 'legal', 'attacks', 'set',
 			'weaknesses', 'resistances', 'illustrator',
-			'id', 'localId', 'suffix', 'category'
+			'id', 'localId', 'suffix', 'category', 'retreat'
 		].includes(item))
 	for (const field of items) {
 		const display = field.substr(0, 1).toUpperCase() + field.substr(1)
@@ -44,6 +43,12 @@ export default function(card: Card) {
 	// Other informations
 	if (card.localId) {
 		embed.addField('Identifier', `TCGdex ID: \`${card.id}\`\nCard number: \`${card.localId}\``, true)
+	}
+	if (card.variants) {
+		embed.addField('Variants', `${card.variants.normal ? '✅' : '❎'} Normal\n${card.variants.reverse ? '✅' : '❎'} Reverse\n${card.variants.holo ? '✅' : '❎'} Holo\n${card.variants.firstEdition ? '✅' : '❎'} 1st Edition`, true)
+	}
+	if (typeof card.retreat === 'number') {
+		embed.addField('Retreat Cost', replaceTypesByEmojis(Array.from(new Array(card.retreat)).map(() => 'Colorless').join(' ')))
 	}
 	if (card.image) {
 		embed.url(

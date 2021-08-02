@@ -1,4 +1,4 @@
-import { MessageButtonOptions, MessageButtonStyle } from 'discord.js'
+import { MessageButtonOptions } from 'discord.js'
 import { PartialEmojiStructure } from '../Emoji'
 import MessageComponent, { MessageComponentStructure } from '.'
 
@@ -91,7 +91,7 @@ export default class Button extends MessageComponent<ButtonStructure> {
 
 	public toDiscordJS(): MessageButtonOptions {
 		return {
-			customID: this.customID(),
+			customId: this.customID(),
 			style: this.type() as number,
 			disabled: this.disabled(),
 			label: this.label(),

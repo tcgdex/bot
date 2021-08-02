@@ -27,7 +27,7 @@ export default class Find extends ApplicationCommand {
 		}],
 	}
 
-	public async all({ client, args }: Inputs) {
+	public async all({ args }: Inputs) {
 		const tcgdex = new TCGdex('en')
 		let serie: string
 		let set: SetResume

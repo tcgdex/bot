@@ -17,7 +17,7 @@ export default class Set extends ApplicationCommand {
 		}],
 	}
 
-	public async all({ client, args }: Inputs) {
+	public async all({ args }: Inputs) {
 		const tcgdex = new TCGdex('en')
 		const name = args.join(' ')
 		const tmp = await tcgdex.fetch('sets')

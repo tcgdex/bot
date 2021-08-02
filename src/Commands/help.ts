@@ -31,7 +31,8 @@ export default class Help extends ApplicationCommand {
 			.addRow(
 				new ActionRow(
 					new Button(ButtonStyle.Link, 'https://www.tcgdex.net').label('Website'),
-					new Button(ButtonStyle.Link, 'https://github.com/tcgdex/discord').label('Github')
+					new Button(ButtonStyle.Link, 'https://github.com/tcgdex/discord').label('Github'),
+					new Button(ButtonStyle.Link, 'https://discord.gg/HGnvEp3reF').label('Discord Server')
 				)
 			)
 	}

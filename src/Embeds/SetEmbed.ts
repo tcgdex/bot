@@ -1,5 +1,4 @@
 import { Set } from '@tcgdex/sdk'
-import Embed from '../Components/Embed'
 import BaseEmbed from './BaseEmbed'
 
 export default function(set: Set) {

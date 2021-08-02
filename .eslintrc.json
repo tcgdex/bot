@@ -1,0 +1,5 @@
+{
+	"extends": [
+		"./node_modules/@dzeio/config/eslint/typescript"
+	]
+}
