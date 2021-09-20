@@ -93,8 +93,7 @@ client.on('interactionCreate', async (interaction) => {
 	if (interaction.isMessageComponent()) {
 
 		// Get args and command
-		let args: Array<string> = []
-		args = interaction.customId.split(' ')
+		const args: Array<string> = interaction.customId.split('/')[1].split(' ')
 
 		if (interaction.isSelectMenu()) {
 			args.push(...(interaction.values ?? []))
