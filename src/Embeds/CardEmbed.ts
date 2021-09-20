@@ -47,14 +47,17 @@ export default function(card: Card) {
 	if (card.variants) {
 		embed.addField('Variants', `${card.variants.normal ? '✅' : '❎'} Normal\n${card.variants.reverse ? '✅' : '❎'} Reverse\n${card.variants.holo ? '✅' : '❎'} Holo\n${card.variants.firstEdition ? '✅' : '❎'} 1st Edition`, true)
 	}
+	if (card.legal) {
+		embed.addField('Legality', `${card.legal.standard ? '✅' : '❎'} Standard\n${card.legal.expanded ? '✅' : '❎'} Expanded\n✅ Unlimited`, true)
+	}
 	if (typeof card.retreat === 'number') {
 		embed.addField('Retreat Cost', replaceTypesByEmojis(Array.from(new Array(card.retreat)).map(() => 'Colorless').join(' ')))
 	}
 	if (card.image) {
 		embed.url(
 			card.image
-			.replace('assets.tcgdex.net/', 'www.tcgdex.net/database/')
-			.replace('/en/', '/')
+				.replace('assets.tcgdex.net/', 'www.tcgdex.net/database/')
+				.replace('/en/', '/')
 		)
 	}
 	if (card.abilities) {
