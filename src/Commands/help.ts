@@ -32,7 +32,8 @@ export default class Help extends ApplicationCommand {
 				new ActionRow(
 					new Button(ButtonStyle.Link, 'https://www.tcgdex.net').label('Website'),
 					new Button(ButtonStyle.Link, 'https://github.com/tcgdex/discord').label('Github'),
-					new Button(ButtonStyle.Link, 'https://discord.gg/HGnvEp3reF').label('Discord Server')
+					new Button(ButtonStyle.Link, 'https://discord.gg/HGnvEp3reF').label('Discord Server'),
+					new Button(ButtonStyle.Link, 'https://discord.com/api/oauth2/authorize?client_id=465978667022024704&permissions=329728&scope=bot%20applications.commands').label('Invite me !')
 				)
 			)
 	}
