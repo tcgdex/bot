@@ -81,14 +81,15 @@ export default class Find extends ApplicationCommand {
 		const message = new Message()
 			.text('Select the correct card')
 
-		for (const iterator of filteredCards) {
+		for (let i = 0; i < filteredCards.length; i++) {
+			const iterator = filteredCards[i]
 			if (s.option().length === 25) {
 				if (message.text().endsWith('card')) {
 					message.text(message.text() + '\n_lot of cards were found with this name, maybe an other research will give better results_')
 					s.placeholder('Select the card you search part 1')
 				}
 				message.addRow(new ActionRow(s))
-				s = new Select('findbyid')
+				s = new Select(`${i}/findbyid`)
 					.placeholder(`Select the card you search part ${message.row().length + 1}`)
 			}
 			s.addOption(`${iterator.name} - ${sets.find((se) => iterator.id.replace(`-${iterator.localId}`, '').includes(se.id))?.name}`.substr(0, 25), iterator.id)
