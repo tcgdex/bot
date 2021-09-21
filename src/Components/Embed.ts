@@ -1,3 +1,4 @@
+import { objectClean } from '@dzeio/object-util'
 import { MessageEmbedOptions } from 'discord.js'
 
 interface EmbedField {
@@ -19,16 +20,16 @@ interface EmbedAuthor {
 }
 
 interface EmbedImage {
-	url: string;
-	proxy_url?: string;
-	height?: number;
-	width?: number;
+	url: string
+	proxy_url?: string
+	height?: number
+	width?: number
 }
 
 interface EmbedFooter {
-	text: string;
-	icon_url?: string;
-	proxy_icon_url?: string;
+	text: string
+	icon_url?: string
+	proxy_icon_url?: string
 }
 
 export interface EmbedStructure {
@@ -67,7 +68,7 @@ export default class Embed {
 	public title(value?: EmbedStructure['title']) {
 		if (value) {
 			if (value.length > 256) {
-				throw new Error(`embed title can\'t be larger than 256 characters (${value})`)
+				throw new Error(`embed title can't be larger than 256 characters (${value})`)
 			}
 			this.definition.title = value
 			return this
@@ -80,7 +81,7 @@ export default class Embed {
 	public description(value?: EmbedStructure['description']) {
 		if (value) {
 			if (value.length > 4096) {
-				throw new Error(`embed title can\'t be larger than 4096 characters (${value})`)
+				throw new Error(`embed title can't be larger than 4096 characters (${value})`)
 			}
 			this.definition.description = value
 			return this
@@ -143,7 +144,7 @@ export default class Embed {
 	public footer(text?: string, iconUrl?: string, proxyIconUrl?: string) {
 		if (text) {
 			if (text.length > 2048) {
-				throw new Error(`embed footer text can\'t be larger than 2048 characters (${text})`)
+				throw new Error(`embed footer text can't be larger than 2048 characters (${text})`)
 			}
 			this.definition.footer = {text, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
 			return this
@@ -196,7 +197,7 @@ export default class Embed {
 	public author(name?: string, url?: string, iconUrl?: string, proxyIconUrl?: string) {
 		if (name || url || iconUrl || proxyIconUrl) {
 			if (name && name.length > 256) {
-				throw new Error(`embed author name can\'t be larger than 256 characters (${name})`)
+				throw new Error(`embed author name can't be larger than 256 characters (${name})`)
 			}
 			this.definition.author = {name, url, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
 			return this
@@ -209,13 +210,13 @@ export default class Embed {
 			this.definition.fields = []
 		}
 		if (this.definition.fields.length > 25) {
-			throw new Error(`embed can\'t have more than 25 fields (embed title: ${this.title()})`)
+			throw new Error(`embed can't have more than 25 fields (embed title: ${this.title()})`)
 		}
 		if (name.length > 256) {
-			throw new Error(`embed field title can\'t be larger than 256 characters (${name})`)
+			throw new Error(`embed field title can't be larger than 256 characters (${name})`)
 		}
 		if (value.length > 1024) {
-			throw new Error(`embed field value can\'t be larger than 1024 characters (${value})`)
+			throw new Error(`embed field value can't be larger than 1024 characters (${value})`)
 		}
 		this.definition.fields.push({name, value, inline})
 		return this
@@ -236,10 +237,10 @@ export default class Embed {
 		}
 		if (typeof index !== 'undefined' && name && value) {
 			if (name.length > 256) {
-				throw new Error(`embed field title can\'t be larger than 256 characters (${name})`)
+				throw new Error(`embed field title can't be larger than 256 characters (${name})`)
 			}
 			if (value.length > 1024) {
-				throw new Error(`embed field value can\'t be larger than 1024 characters (${value})`)
+				throw new Error(`embed field value can't be larger than 1024 characters (${value})`)
 			}
 			const field = {name, value, inline: inline ?? false}
 			this.definition.fields[index] = field
@@ -252,11 +253,10 @@ export default class Embed {
 
 	public toDiscordJS(): MessageEmbedOptions {
 		const color = typeof this.definition.color === 'string' ? parseInt(this.definition.color, 16) : this.definition.color
-		if (typeof color !== 'undefined' && isNaN(color)) {
-		}
+		objectClean(this.definition)
 		return {
 			...this.definition,
-			color: color
+			color
 		}
 	}
 }

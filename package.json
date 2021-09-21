@@ -1,10 +1,11 @@
 {
 	"private": true,
+	"name": "@tcgdex/discord",
 	"dependencies": {
 		"@dzeio/config": "^1.1.0",
 		"@dzeio/object-util": "^1.2.0",
 		"@tcgdex/sdk": "^2.4.0",
-		"discord.js": "^13.0.0-dev.t1627906063.6e0ea02",
+		"discord.js": "13.0.0-dev.t1627906063.6e0ea02",
 		"dotenv": "^10.0.0",
 		"ts-node-dev": "^1.1.7",
 		"typescript": "^3.9.3"
