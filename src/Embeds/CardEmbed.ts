@@ -91,7 +91,7 @@ export default function(card: Card) {
 		embed.image(`${card.image}/high.png`)
 	}
 	embed
-		.author(card.illustrator, `${card.set.symbol}.png`)
+		.author(card.illustrator, undefined, `${card.set.symbol}.png`)
 		.title(title)
 		.addField('Set', card.set.name, true)
 
