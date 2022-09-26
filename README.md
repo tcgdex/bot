@@ -1,6 +1,6 @@
 <p align="center">
-	<a href="https://www.tcgdex.net">
-		<img src="https://repository-images.githubusercontent.com/241652591/01dd7200-ca01-11eb-98e0-d8f04e7dfe42" width="50%" alt="Discord Link">
+	<a href="https://discord.gg/NehYTAhsZE">
+		<img src="https://www.tcgdex.net/assets/og.png" width="70%" alt="Discord Link">
 	</a>
 </p>
 <p align="center">
