@@ -70,7 +70,7 @@ export default class Select extends MessageComponent<SelectStructure> {
 
 	public toDiscordJS(): MessageSelectMenuOptions {
 		return {
-			type: 3,
+			type: 'SELECT_MENU',
 			customId: this.definition.custom_id,
 			maxValues: this.definition.max_values,
 			minValues: this.definition.min_value,

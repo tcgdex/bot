@@ -12,21 +12,21 @@ export default abstract class MessageComponent<T extends MessageComponentStructu
 
 	public definition: T = {} as any
 
-	public constructor (type: MessageComponentStructure['type'] | 'Button' | 'Row' | 'Select') {
+	public constructor(type: MessageComponentStructure['type'] | 'Button' | 'Row' | 'Select') {
 		if (typeof type === 'string') {
 			switch (type) {
 				case 'Row':
 					type = 1
-					break;
+					break
 				case 'Button':
 					type = 2
-					break;
+					break
 				case 'Select':
 					type = 3
-					break;
+					break
 
 				default:
-					break;
+					break
 			}
 		}
 		this.definition.type = type

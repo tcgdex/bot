@@ -1,4 +1,4 @@
-import { ApplicationCommandData, Client, Intents } from 'discord.js'
+import { ApplicationCommand as DJSApplicationCommand, Client, Intents } from 'discord.js'
 import { promises as fs } from 'fs'
 import { config } from 'dotenv'
 import { objectEqual } from '@dzeio/object-util'
@@ -16,7 +16,9 @@ const PREFIX = process.env.PREFIX ?? 'TCGdex'
 const ERROR_MESSAGE = new Message('there was an error trying to execute that command!')
 
 // Load client
-const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES]})
+const client = new Client({
+	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES]
+})
 
 // Commands by their names
 const commands: Record<string, ApplicationCommand> = {}
@@ -24,20 +26,21 @@ const commands: Record<string, ApplicationCommand> = {}
 // When client has loaded
 client.on('ready', async () => {
 	// Fetch commands
-	const files = await fs.readdir(path.join(__dirname, './Commands')).then((f) => f.filter((v) => (v.endsWith('ts') || v.endsWith('js'))))
+	const files = await fs.readdir(path.join(__dirname, './Commands'))
+		.then((f) => f.filter((v) => v.endsWith('ts') || v.endsWith('js')))
 
 	if (!client.application || !client.user) {
 		throw new Error('Client vars are not set')
 	}
 
 	// Fetch Discord loaded commands
-	const existingCommands: Record<string, ApplicationCommandData> = {}
+	const existingCommands: Record<string, DJSApplicationCommand> = {}
 	await client.application.commands.fetch().then((cmds) => cmds.forEach((c) => {
 		existingCommands[c.name] = c
 	}))
 
 	// Load commands
-	for (const file of files) {
+	for await (const file of files) {
 		if (!file.endsWith('.ts') && !file.endsWith('.js')) {
 			continue
 		}
@@ -51,14 +54,11 @@ client.on('ready', async () => {
 
 		// fill options with what Discord autofill
 		const discordJSDefinition = cmd.definitionToDiscordJS()
-		const options = discordJSDefinition.options?.map((o) => ({choices: undefined, options: undefined, ...o})) ?? []
 
 		// check if we need to update the command on Discord
 		const needUpdate = existingCommands[cmd.definition.name] && !objectEqual({
-			name: existingCommands[cmd.definition.name].name,
-			description: existingCommands[cmd.definition.name].description,
-			options: existingCommands[cmd.definition.name].options
-		}, {...discordJSDefinition, options})
+			name: existingCommands[cmd.definition.name].name
+		}, {...discordJSDefinition})
 
 		// Add missing slash commands
 		if (Object.keys(existingCommands).includes(cmd.definition.name) && needUpdate) {
@@ -73,7 +73,7 @@ client.on('ready', async () => {
 	// Fetch guilds count and display it
 	const size = await client.guilds.fetch()
 	client.user.setPresence({
-		activities: [{name: `${size.size} servers | ${PREFIX} help`, type: "LISTENING"}]
+		activities: [{name: `${size.size} servers | ${PREFIX} help`, type: 'LISTENING'}]
 	})
 
 	console.log(`Loaded, Logged in as ${client.user.tag}`)
@@ -102,7 +102,7 @@ client.on('interactionCreate', async (interaction) => {
 		}
 
 		if (interaction.isSelectMenu()) {
-			args.push(...(interaction.values ?? []))
+			args.push(...interaction.values ?? [])
 		}
 
 		const command = args.shift()
@@ -161,7 +161,7 @@ client.on('messageCreate', async (message) => {
 
 	// Replace ths client user id by the username so it's easier to read
 	if (prefix === `<@!${client.user.id}>`) {
-		//TODO: get the server nickname instead of the global username
+		// TODO: get the server nickname instead of the global username
 		prefix = `@${client.user.username}`
 	}
 
@@ -169,7 +169,9 @@ client.on('messageCreate', async (message) => {
 	const command = args.length > 0 ? args.shift()?.toLowerCase() : 'help'
 
 	// ignore message if the command does not exist
-	if (!command || !commands[command]) return;
+	if (!command || !commands[command]) {
+		return
+	}
 
 	// Handle command like a slash command
 	try {
@@ -185,15 +187,15 @@ client.on('messageCreate', async (message) => {
 			}, 'message')
 			await msg.edit(response.toDiscordJS())
 		} catch (error) {
-			console.error(error);
-			await msg.edit(ERROR_MESSAGE.toDiscordJS());
+			console.error(error)
+			await msg.edit(ERROR_MESSAGE.toDiscordJS())
 		}
 	} catch (e) {
 		console.log(e)
 		console.log('User do not have the permission to write in this channel')
 		message.author.send('It seems I can\'t reply in the channel 😅, please contact an administrator or change my permissions to have `Send Messages`, `Read Message History` and `Use External Emojis`')
 	}
-});
+})
 
 // Load the bot :D
 client.login(process.env.TOKEN)

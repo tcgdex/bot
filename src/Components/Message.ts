@@ -76,7 +76,7 @@ export default class Message {
 		return {
 			content: this.text(),
 			embeds: this.embed().map((e) => e.toDiscordJS()),
-			components: this.components.map((r) => r.toDiscordJS())
+			components: this.components.map((r) => r.toDiscordJS() as any)
 		}
 	}
 }

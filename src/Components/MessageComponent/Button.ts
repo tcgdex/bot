@@ -96,7 +96,7 @@ export default class Button extends MessageComponent<ButtonStructure> {
 			disabled: this.disabled(),
 			label: this.label(),
 			url: this.url(),
-			type: 2
+			type: 'BUTTON'
 		}
 	}
 }

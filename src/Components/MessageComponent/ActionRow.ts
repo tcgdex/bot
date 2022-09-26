@@ -37,14 +37,15 @@ export default class ActionRow extends MessageComponent<ActionRowStructure> {
 			this.subType === 2 && this.definition.components.length >= 5 ||
 			this.subType === 3 && this.definition.components.length >= 1
 		) {
-			throw new Error(`Can\'t add more of this component to the row (${MessageComponentType[this.subType]})`)
+			throw new Error(`Can't add more of this component to the row (${MessageComponentType[this.subType]})`)
 		}
 		this.definition.components.push(...components)
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public removeComponent() {}
 
 	public toDiscordJS(): MessageActionRowOptions {
-		return {type: 1, components: this.definition.components.map((v) => (v as any).toDiscordJS())}
+		return {type: 'ACTION_ROW', components: this.definition.components.map((v) => (v as any).toDiscordJS())}
 	}
 }
