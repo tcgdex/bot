@@ -146,6 +146,7 @@ client.on('interactionCreate', async (interaction) => {
 
 client.on('messageCreate', async (message) => {
 	// Ignore message by bots
+	console.log(message.content, client?.user?.id)
 	if (message.author.bot) {
 		return
 	}
@@ -155,12 +156,12 @@ client.on('messageCreate', async (message) => {
 	let prefix = args.shift()
 
 	// ignore message not started by the bot's name or PREFIX
-	if (!prefix || !client.user || !(prefix.toLowerCase() === PREFIX.toLowerCase()) && !(prefix === `<@!${client.user.id}>`)) {
+	if (!prefix || !client.user || !(prefix.toLowerCase() === PREFIX.toLowerCase()) && !(prefix === `<@!${client.user.id}>` || prefix === `<@${client.user.id}>`)) {
 		return
 	}
 
 	// Replace ths client user id by the username so it's easier to read
-	if (prefix === `<@!${client.user.id}>`) {
+	if (prefix === `<@!${client.user.id}>` || prefix === `<@${client.user.id}>`) {
 		// TODO: get the server nickname instead of the global username
 		prefix = `@${client.user.username}`
 	}
