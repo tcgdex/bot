@@ -146,7 +146,6 @@ client.on('interactionCreate', async (interaction) => {
 
 client.on('messageCreate', async (message) => {
 	// Ignore message by bots
-	console.log(message.content, client?.user?.id)
 	if (message.author.bot) {
 		return
 	}
