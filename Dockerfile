@@ -5,13 +5,13 @@ WORKDIR /app
 ADD package.json package-lock.json ./
 
 # install dependencies
-RUN npm i
+RUN npm ci
 
 # Add project files
 ADD . .
 
 # build
-RUN npm run build || true
+RUN npm run build
 
 # remove dev dependencies
 RUN npm prune --production
@@ -28,4 +28,4 @@ COPY --from=BUILD_IMAGE /app/node_modules ./node_modules
 COPY --from=BUILD_IMAGE /app/dist ./dist
 
 # run it !
-CMD [ "npm", "run", "prod" ]
+CMD [ "npm", "run", "start" ]

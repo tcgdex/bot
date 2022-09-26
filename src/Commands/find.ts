@@ -82,6 +82,10 @@ export default class Find extends ApplicationCommand {
 			.text('Select the correct card')
 
 		for (let i = 0; i < filteredCards.length; i++) {
+			if (i >= 25*5) {
+				message.text(message.text() + `\n_too much cards are available with the current search (${filteredCards.length}) we can only display ${25*5} cards :(`)
+				break
+			}
 			const iterator = filteredCards[i]
 			if (s.option().length === 25) {
 				if (message.text().endsWith('card')) {
