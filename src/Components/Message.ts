@@ -1,8 +1,7 @@
-import { MessageOptions } from 'discord.js'
-import Button from './MessageComponent/Button'
+import ActionRow from './Components/ActionRow'
+import Button from './Components/Button'
+import Select from './Components/Select'
 import Embed from './Embed'
-import Select from './MessageComponent/Select'
-import ActionRow from './MessageComponent/ActionRow'
 
 export type MessageComponents = Button | Select
 
@@ -70,13 +69,5 @@ export default class Message {
 			this.embeds.push(embed)
 		}
 		return this
-	}
-
-	public toDiscordJS(): MessageOptions {
-		return {
-			content: this.text(),
-			embeds: this.embed().map((e) => e.toDiscordJS()),
-			components: this.components.map((r) => r.toDiscordJS() as any)
-		}
 	}
 }

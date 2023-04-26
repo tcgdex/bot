@@ -4,6 +4,6 @@
 	"compilerOptions": {
 
 		"outDir": "./dist",
-
+		"resolveJsonModule": true
 	},
 }

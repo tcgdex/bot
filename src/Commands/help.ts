@@ -1,28 +1,28 @@
-import ApplicationCommand, { Inputs } from '../Components/ApplicationCommand'
+import { objectValues } from '@dzeio/object-util'
+import Bot from '../Bot'
+import ActionRow from '../Components/Components/ActionRow'
+import Button, { ButtonStyle } from '../Components/Components/Button'
 import Embed from '../Components/Embed'
 import Message from '../Components/Message'
-import ActionRow from '../Components/MessageComponent/ActionRow'
-import Button, { ButtonStyle } from '../Components/MessageComponent/Button'
+import { Command, CommandArguments } from '../interfaces'
 
-export default class Help extends ApplicationCommand {
-	public definition = {
-		name: 'help',
-		description: 'Display the commands linked to the bot',
-		options: []
-	}
+export default class Help implements Command {
 
-	public async all({ commands, prefix }: Inputs) {
+	public name = 'help'
+	public description = 'Display the commands linked to the bot'
 
+	public async execute({ prefix }: CommandArguments) {
+
+		const commands = await Bot.get().getCommands()
 		const embed = new Embed()
 		embed.title('TCGdex BOT')
 		embed.description('Browse the Pokemon Trading Card game cards using the TCGdex BOT\n\nCommands:')
-		for (const commandName of Object.keys(commands)) {
-			const command = commands[commandName]
-			const options = command.definition.options?.map((o) => `[${o.name}]`).join(' ')
-			const optionsDescriptions = command.definition.options?.map((opt) => `**${opt.name}** ${opt.required ? '' : '(Optionnal)'}\n*${opt.description}*`)
+		for (const command of objectValues(commands)) {
+			const options = command.options?.map((opt) => `[${opt.name}]`).join(' ')
+			const optionsDescriptions = command.options?.map((opt) => `**${opt.name}** ${opt.required ? '' : '(Optionnal)'}\n*${opt.description}*`)
 			embed.addField(
-				`\`${prefix} ${command.definition.name}${options ? ' ' + options : ''}\``,
-				`*${command.definition.description ?? ''}*\n${optionsDescriptions?.join('\n') ?? ''}`
+				`\`${prefix} ${command.name}${options ? ' ' + options : ''}\``,
+				`*${command.description ?? ''}*\n${optionsDescriptions?.join('\n') ?? ''}`
 			)
 		}
 

@@ -1,6 +1,3 @@
-import { objectClean } from '@dzeio/object-util'
-import { MessageEmbedOptions } from 'discord.js'
-
 interface EmbedField {
 	name: string
 	value: string
@@ -13,7 +10,7 @@ interface EmbedProvider {
 }
 
 interface EmbedAuthor {
-	name?: string
+	name: string
 	url?: string
 	icon_url?: string
 	proxy_icon_url?: string
@@ -34,7 +31,6 @@ interface EmbedFooter {
 
 export interface EmbedStructure {
 	title?: string
-	type?: 'rich' | 'image' | 'video' | 'gifv' | 'article' | 'link'
 	description?: string
 	url?: string
 	timestamp?: Date
@@ -87,16 +83,6 @@ export default class Embed {
 			return this
 		}
 		return this.definition.description
-	}
-
-	public type(): EmbedStructure['type']
-	public type(value: EmbedStructure['type']): this
-	public type(value?: EmbedStructure['type']) {
-		if (value) {
-			this.definition.type = value
-			return this
-		}
-		return this.definition.type
 	}
 
 	public url(): EmbedStructure['url']
@@ -193,9 +179,12 @@ export default class Embed {
 	}
 
 	public author(): EmbedStructure['author']
-	public author(name?: string, url?: string, iconUrl?: string, proxyIconUrl?: string): this
+	public author(name: string, url?: string, iconUrl?: string, proxyIconUrl?: string): this
 	public author(name?: string, url?: string, iconUrl?: string, proxyIconUrl?: string) {
-		if (name || url || iconUrl || proxyIconUrl) {
+		if (url || iconUrl || proxyIconUrl) {
+			if (!name) {
+				throw new Error('embed author MUST have a name')
+			}
 			if (name && name.length > 256) {
 				throw new Error(`embed author name can't be larger than 256 characters (${name})`)
 			}
@@ -249,14 +238,5 @@ export default class Embed {
 			return this.definition.fields[index]
 		}
 		return this.definition.fields
-	}
-
-	public toDiscordJS(): MessageEmbedOptions {
-		const color = typeof this.definition.color === 'string' ? parseInt(this.definition.color, 16) : this.definition.color
-		objectClean(this.definition)
-		return {
-			...this.definition,
-			color
-		}
 	}
 }

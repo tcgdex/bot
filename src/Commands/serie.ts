@@ -1,23 +1,21 @@
 import TCGdex from '@tcgdex/sdk'
-import ApplicationCommand, { ApplicationCommandOptionType, Inputs } from '../Components/ApplicationCommand'
+import ActionRow from '../Components/Components/ActionRow'
+import Select from '../Components/Components/Select'
 import Message from '../Components/Message'
-import ActionRow from '../Components/MessageComponent/ActionRow'
-import Select from '../Components/MessageComponent/Select'
 import SerieEmbed from '../Embeds/SerieEmbed'
+import { Command, CommandArguments, CommandOptionType } from '../interfaces'
 
-export default class Serie extends ApplicationCommand {
-	public definition = {
-		name: 'serie',
-		description: 'Find and display a serie informations',
-		options: [{
-			name: 'name',
-			description: 'Serie\'s name/ID',
-			required: true,
-			type: ApplicationCommandOptionType.STRING
-		}],
-	}
+export default class Serie implements Command {
+	public name = 'serie'
+	public description = 'Find and display a serie informations'
+	public options = [{
+		name: 'name',
+		description: 'Serie\'s name/ID',
+		required: true,
+		type: CommandOptionType.STRING
+	}]
 
-	public async all({ args }: Inputs) {
+	public async execute({ args }: CommandArguments) {
 		const tcgdex = new TCGdex('en')
 		const name = args.join(' ')
 		const tmp = await tcgdex.fetch('series')
@@ -35,7 +33,7 @@ export default class Serie extends ApplicationCommand {
 				if (select.option().length >= 25) {
 					msg.addRow(new ActionRow(select))
 					select = new Select('serie')
-					.placeholder(`Select the serie you want ${msg.row().length + 1}`)
+						.placeholder(`Select the serie you want ${msg.row().length + 1}`)
 				}
 				select.addOption(set.name.substr(0, 25), set.id)
 			}
@@ -49,7 +47,7 @@ export default class Serie extends ApplicationCommand {
 		}
 
 		const msg = new Message(' ').embed(SerieEmbed(serie))
-		let select = new Select('set')
+		const select = new Select('set')
 			.placeholder('Sets')
 		for (const set of serie.sets) {
 			select.addOption(set.name, set.id)

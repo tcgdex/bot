@@ -1,33 +1,31 @@
 import TCGdex, { SetResume } from '@tcgdex/sdk'
-import ApplicationCommand, { ApplicationCommandOptionType, Inputs } from '../Components/ApplicationCommand'
+import ActionRow from '../Components/Components/ActionRow'
+import Select from '../Components/Components/Select'
 import Message from '../Components/Message'
-import ActionRow from '../Components/MessageComponent/ActionRow'
-import Select from '../Components/MessageComponent/Select'
 import CardEmbed from '../Embeds/CardEmbed'
+import { Command, CommandArguments, CommandOptionType } from '../interfaces'
 
-export default class Find extends ApplicationCommand {
-	public definition = {
-		name: 'find',
-		description: 'Find a card by it\'s name',
-		options: [{
-			name: 'name',
-			description: 'Card name',
-			required: true,
-			type: ApplicationCommandOptionType.STRING
-		}, {
-			name: 'serie',
-			description: 'Filter with a defined serie',
-			required: false,
-			type: ApplicationCommandOptionType.STRING
-		}, {
-			name: 'set',
-			description: 'Filter with a defined set',
-			required: false,
-			type: ApplicationCommandOptionType.STRING
-		}],
-	}
+export default class Find implements Command {
+	public name = 'find'
+	public description = 'Find a card by it\'s name'
+	public options = [{
+		name: 'name',
+		description: 'Card name',
+		required: true,
+		type: CommandOptionType.STRING
+	}, {
+		name: 'serie',
+		description: 'Filter with a defined serie',
+		required: false,
+		type: CommandOptionType.STRING
+	}, {
+		name: 'set',
+		description: 'Filter with a defined set',
+		required: false,
+		type: CommandOptionType.STRING
+	}]
 
-	public async all({ args }: Inputs) {
+	public async execute({ args }: CommandArguments) {
 		const tcgdex = new TCGdex('en')
 		let serie: string
 		let set: SetResume
@@ -53,8 +51,8 @@ export default class Find extends ApplicationCommand {
 
 		const filteredCards = cards.filter((r) => {
 			if (
-				(serie && !r.id.includes(serie)) ||
-				(set && !r.id.includes(set.id))
+				serie && !r.id.includes(serie) ||
+				set && !r.id.includes(set.id)
 			) {
 				return false
 			}
@@ -83,7 +81,7 @@ export default class Find extends ApplicationCommand {
 
 		for (let i = 0; i < filteredCards.length; i++) {
 			if (i >= 25*5) {
-				message.text(message.text() + `\n_too much cards are available with the current search (${filteredCards.length}) we can only display ${25*5} cards :(`)
+				message.text(message.text() + `\n_too much cards are available with the current search (${filteredCards.length}) we can only display ${25*5} cards :(_`)
 				break
 			}
 			const iterator = filteredCards[i]

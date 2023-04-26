@@ -1,19 +1,16 @@
-import ApplicationCommand from '../Components/ApplicationCommand'
 import Embed from '../Components/Embed'
 import Message from '../Components/Message'
 import { replaceTypesByEmojis } from '../Utils'
+import { Command } from '../interfaces'
 
 /**
  * This command is only available when using the non Dockerfile
  */
-export default class Debug extends ApplicationCommand {
-	public definition = {
-		name: 'debug',
-		description: 'Simple test frame',
-		options: []
-	}
+export default class Debug implements Command {
+	public name = 'debug'
+	public description = 'Simple test frame'
 
-	public async all() {
+	public async execute() {
 
 		const embed = new Embed()
 		embed.title('TCGdex BOT')
