@@ -1,5 +1,5 @@
 import { PartialEmojiStructure } from '../Emoji'
-import { default as Component, ComponentType, default as MessageComponent, MessageComponentStructure } from './Component'
+import { default as Component, ComponentType } from './Component'
 
 export interface SelectOptionStructure {
 	label: string
@@ -9,23 +9,20 @@ export interface SelectOptionStructure {
 	default?: boolean
 }
 
-export interface SelectStructure extends MessageComponentStructure {
-	options: Array<SelectOptionStructure>
-	placeholder?: string
-	min_value?: number
-	max_values?: number
-}
 
 export default class Select extends Component {
 
 	private _options: Array<SelectOptionStructure> = []
 	private _placeholder?: string
-	private _min_value?: number
-	private _max_values?: number
+	private _minValue?: number
+	private _maxValue?: number
 	private _callback?: string
 
-	public constructor() {
+	public constructor(callback?: string) {
 		super(ComponentType.Select)
+		if (callback) {
+			this.callback(callback)
+		}
 	}
 
 	public callback(): string
@@ -35,6 +32,26 @@ export default class Select extends Component {
 			return this._callback
 		}
 		this._callback = callback
+		return this
+	}
+
+	public minValue(): number
+	public minValue(minValue: number): this
+	public minValue(minValue?: number) {
+		if (typeof minValue === 'undefined') {
+			return this._minValue
+		}
+		this._minValue = minValue
+		return this
+	}
+
+	public maxValue(): number
+	public maxValue(maxValue: number): this
+	public maxValue(maxValue?: number) {
+		if (typeof maxValue === 'undefined') {
+			return this._maxValue
+		}
+		this._maxValue = maxValue
 		return this
 	}
 

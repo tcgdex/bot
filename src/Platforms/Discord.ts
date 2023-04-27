@@ -21,12 +21,15 @@ import {
 import Bot from '../Bot'
 import Button from '../Components/Components/Button'
 import Select from '../Components/Components/Select'
+import Emoji from '../Components/Emoji'
 import Message from '../Components/Message'
-import { Client, CommandOptions, DiscordConfig, DiscordContext } from '../interfaces'
+import { CommandOptionType, CommandOptions, DiscordConfig, DiscordContext, Platform } from '../interfaces'
 
-const logger = new Logger('Client/Discord')
+const logger = new Logger('Platforms/Discord')
 
-export default class Discord implements Client {
+export default class Discord implements Platform {
+	public name = 'Discord'
+
 	private client!: DiscordClient
 
 	public constructor(
@@ -79,26 +82,54 @@ export default class Discord implements Client {
 	}
 
 	private async refreshCommands() {
-		const commands = await Bot.get().getCommands()
+		const commands = await Bot.get().getCommands(this)
 		const rest = new REST({ version: '10' }).setToken(this.token)
 
 		rest.put(Routes.applicationCommands(this.clientId), {
 			body: objectValues(commands).map((command) => ({
 				name: command.name,
 				description: command.description,
-				options: command.options?.map(this.formatOption)
+				options: command.options?.map(this.formatOption).flat()
 			}))
 		})
 	}
 
-	private formatOption = (option: CommandOptions): any => ({
-		type: option.type + 1,
-		name: option.name,
-		description: option.description,
-		required: option.required,
-		choices: option.choices,
-		options: option.options?.map(this.formatOption)
-	})
+	private formatOption = (option: CommandOptions): any => {
+		if (option.type === CommandOptionType.COMMAND_GROUP) {
+			return option.commands.map((cmd) => ({
+				type: 1,
+				name: cmd.name,
+				required: false,
+				description: cmd.description,
+				options: cmd.options?.map(this.formatOption)
+			}))
+		}
+
+		return {
+			type: this.typeToDiscordType(option.type),
+			name: option.name,
+			description: option.description,
+			required: option.required,
+			choices: option.choices,
+			options: option.options?.map(this.formatOption)
+		}
+	}
+
+	private typeToDiscordType(type: CommandOptionType): number {
+		switch (type) {
+			case CommandOptionType.STRING:
+				return 3
+			case CommandOptionType.INTEGER:
+				return 4
+			case CommandOptionType.USER:
+				return 5
+			case CommandOptionType.ROLE:
+				return 6
+			case CommandOptionType.MENTIONABLE:
+				return 7
+		}
+		return -1
+	}
 
 	private onMessage = async (message: DiscordMessage<boolean>) => {
 		// Ignore message by bots
@@ -132,20 +163,21 @@ export default class Discord implements Client {
 		}
 
 		// Get the command
-		const command = args.length > 0 ? args.shift()?.toLowerCase() : 'help'
+		const command = args.shift()
 
 		const commands = await Bot.get().getCommands()
 		// ignore message if the command does not exist
 		if (!command || !commands[command]) {
 			return
 		}
+		logger.log(`processing command: ${command} ${args.join(' ')}`)
 
 		// Handle command like a slash command
 		try {
 			const msg = await message.reply('<a:typing:861888874404773888> Sending Command...')
 			try {
 				// Process and edit the original message
-				const response = await commands[command].execute(this.buildContext(prefix, command, args))
+				const response = await Bot.get().handleCommand(this.buildContext(prefix, command, args))
 				await msg.edit(this.formatMessage(response))
 				logger.log(`command processed: ${message.content}`)
 			} catch (error) {
@@ -160,21 +192,19 @@ export default class Discord implements Client {
 	}
 
 	private onInteraction = async (interaction: Interaction<CacheType>) => {
-		const commands = await Bot.get().getCommands()
-
 		// handle buttons and selects
 		if (interaction.isMessageComponent()) {
 
 			// Get args and command
-			logger.log(`processing command: ${interaction.customId}`)
 			let args: Array<string> = []
+			// manage indexes
 			if (interaction.customId.includes('/')) {
 				args = interaction.customId.split('/')[1].split(' ')
 			} else {
 				args = interaction.customId.split(' ')
 			}
 
-			if (interaction.isSelectMenu()) {
+			if (interaction.isStringSelectMenu()) {
 				args.push(...interaction.values ?? [])
 			}
 
@@ -184,30 +214,30 @@ export default class Discord implements Client {
 				return
 			}
 
+			logger.log(`processing command: ${command} ${args.join(' ')}`)
 			// Get the original message
 			try {
 
 				// Process and edit the original message
-				const response = await commands[command].execute(this.buildContext('/', command, args))
+				const response = await Bot.get().handleCommand(this.buildContext('/', command, args))
 				interaction.update(this.formatMessage(response))
-				logger.log(`command processed: ${interaction.customId}`)
+				logger.log(`command processed: ${command} ${args.join(' ')}`)
 			} catch (error) {
 				interaction.update('an error occured')
-				logger.error(`error processing commands: ${interaction.customId}`, error)
+				logger.error(`error processing commands: ${command} ${args.join(' ')}`, error)
 			}
 			return
 
 		// Process commands
 		} else if (interaction.isCommand()) {
-			const cmd = commands[interaction.commandName]
 
 			// Use definition options to fill the args
-			const args = cmd.options?.map((o) => interaction.options.get(o.name)?.value?.toString()).filter((v) => typeof v !== 'undefined') as Array<string> ?? []
+			const args = interaction.options.data.map((o) => o.value?.toString() ?? o.name)
 			logger.log(`processing command: ${interaction.commandName} ${args.join(' ')}`)
 			try {
 
 				// Process and reply to the message
-				const response = await cmd.execute(this.buildContext('/', interaction.commandName, args))
+				const response = await Bot.get().handleCommand(this.buildContext('/', interaction.commandName, args))
 				interaction.reply(this.formatMessage(response))
 				logger.log(`command processed: ${interaction.commandName} ${args.join(' ')}`)
 			} catch (error) {
@@ -222,30 +252,37 @@ export default class Discord implements Client {
 		if (typeof message === 'string') {
 			return message
 		}
+
 		const payload: BaseMessageOptions = {
 			content: message.text(),
 			embeds: message.embed().map((embed) => {
 				const color = embed.color()
+				const fields = embed.field()
+				fields.forEach((field) => {
+					field.name = Emoji.formatText(field.name, this.formatEmoji)
+					field.value = Emoji.formatText(field.value, this.formatEmoji)
+				})
 				return {
 					color: color,
-					title: embed.title(),
-					description: embed.description(),
+					title: Emoji.formatText(embed.title(), this.formatEmoji),
+					description: Emoji.formatText(embed.description(), this.formatEmoji),
 					footer: embed.footer(),
 					image: embed.image(),
 					thumbnail: embed.thumbnail(),
 					video: embed.video(),
 					provider: embed.provider(),
 					author: embed.author(),
-					fields: embed.field()
+					fields: fields
 				}
 			}),
-			components: message.row().map((row) => ({
+			components: message.row().slice(0, 5).map((row, rowIdx) => ({
 				type: ComponentType.ActionRow,
-				components: row.components().map<MessageActionRowComponentData>((component) => {
+				components: row.components().slice(0, 5).map<MessageActionRowComponentData>((component, compIdx) => {
 					if (component instanceof Button) {
+						const cb = component.callback()
 						const tmp: ButtonComponentData = {
-							customId: component.customID(),
-							style: component.type() as number,
+							customId: cb ? rowIdx + '' + compIdx + '/' + cb : undefined,
+							style: component.style() + 1,
 							disabled: component.disabled(),
 							label: component.label(),
 							url: component.url(),
@@ -253,18 +290,19 @@ export default class Discord implements Client {
 						}
 						return tmp
 					} else if (component instanceof Select) {
-						const tmp: StringSelectMenuComponentData =  {
+						console.log(component.options().length)
+						const tmp: StringSelectMenuComponentData = {
 							type: ComponentType.StringSelect,
-							customId: component.customID(),
-							// maxValues: component.max_values,
-							// minValues: component.min_value,
+							customId: rowIdx + '' + compIdx + '/' + component.callback(),
+							maxValues: component.maxValue(),
+							minValues: component.minValue(),
 							placeholder: component.placeholder(),
-							options: component.option().map((o) => ({
-								default: o.default,
-								description: o.description,
-								// emoji: o.
-								label: o.label,
-								value: o.value
+							options: component.options().slice(0, 25).map((opt) => ({
+								default: opt.default,
+								description: opt.description,
+								// emoji: opt.
+								label: opt.label,
+								value: opt.value
 							}))
 						}
 						return tmp
@@ -281,8 +319,12 @@ export default class Discord implements Client {
 			prefix,
 			command,
 			args,
-			client: this,
+			platform: this,
 
 		}
+	}
+
+	private formatEmoji(emoji: Emoji) {
+		return `<:${emoji.name?.toLowerCase()}:${emoji.id}>`
 	}
 }

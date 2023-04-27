@@ -8,14 +8,26 @@ export interface Context {
 	/**
 	 * Discord or Telegram depending the client that ask the command
 	 */
-	client: Client
+	platform: Platform
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface DiscordContext extends Context {
+
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface TelegramContext extends Context {
+
 }
 
 type OptionnalPromise<T> = Promise<T> | T
 
 export enum CommandOptionType {
-	SUB_COMMAND,
-	SUB_COMMAND_GROUP,
+	/**
+	 * group of commands
+	 */
+	COMMAND_GROUP,
 	STRING,
 	INTEGER,
 	BOOLEAN,
@@ -30,11 +42,25 @@ export interface CommandOptionChoice {
 	value: string | number
 }
 
-export interface CommandOptions {
+interface BaseCommandOptions {
 	type: CommandOptionType
 	name: string
 	description: string
 	required?: boolean
+}
+
+
+export type CommandOptions = SubCommandOptions | FieldCommandOptions
+
+export interface SubCommandOptions extends BaseCommandOptions {
+	type: CommandOptionType.COMMAND_GROUP
+	commands: Array<Command>
+}
+
+export interface FieldCommandOptions extends BaseCommandOptions {
+	type: CommandOptionType.STRING | CommandOptionType.INTEGER | CommandOptionType.USER | CommandOptionType.ROLE | CommandOptionType.MENTIONABLE
+	name: string
+	description: string
 	choices?: Array<CommandOptionChoice>
 	options?: Array<CommandOptions>
 }
@@ -66,24 +92,21 @@ export interface Command {
 	 * @param inputs inputs necessary for the command to work
 	 */
 	execute(inputs: Context): OptionnalPromise<Message | string>
+	availableOn?(client: Platform): boolean
 }
 
 /**
  * interface managing underlying clients
  */
-export interface Client {
+export interface Platform {
+	/**
+	 * the platform display name
+	 */
+	name: string
 	/**
 	 * initialize the underlying client bot
 	 */
 	init(): Promise<void>
-}
-
-export interface DiscordContext extends Context {
-
-}
-
-export interface TelegramContext extends Context {
-
 }
 
 export interface DiscordConfig {

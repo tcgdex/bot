@@ -29,80 +29,76 @@ interface EmbedFooter {
 	proxy_icon_url?: string
 }
 
-export interface EmbedStructure {
-	title?: string
-	description?: string
-	url?: string
-	timestamp?: Date
-	/**
-	 * if it's a string define the color as a Hexadecimal value
-	 */
-	color?: number
-	footer?: EmbedFooter
-	image?: EmbedImage
-	thumbnail?: EmbedImage
-	video?: EmbedImage
-	provider?: EmbedProvider
-	author?: EmbedAuthor
-	fields?: Array<EmbedField>
-}
-
 /**
  * Global Embed object
 */
 export default class Embed {
 
-	private definition: EmbedStructure = {}
+	private _title?: string
+	private _description?: string
+	private _url?: string
+	private _timestamp?: Date
+	/**
+	 * if it's a string define the color as a Hexadecimal value
+	 */
+	private _color?: number
+	private _footer?: EmbedFooter
+	private _image?: EmbedImage
+	private _thumbnail?: EmbedImage
+	private _video?: EmbedImage
+	private _provider?: EmbedProvider
+	private _author?: EmbedAuthor
+	private _fields: Array<EmbedField> = []
 
 	public constructor(title?: string, description?: string) {
-		this.definition.title = title ?? ' '
-		this.definition.description = description ?? ' '
+		this._title = title ?? ' '
+		this._description = description ?? ' '
 	}
 
-	public title(): EmbedStructure['title']
-	public title(value: EmbedStructure['title']): this
-	public title(value?: EmbedStructure['title']) {
+	public title(): string
+	public title(value: string): this
+	public title(value?: string) {
 		if (value) {
 			if (value.length > 256) {
 				throw new Error(`embed title can't be larger than 256 characters (${value})`)
 			}
-			this.definition.title = value
+			this._title = value
 			return this
 		}
-		return this.definition.title
+		return this._title
 	}
 
-	public description(): EmbedStructure['description']
-	public description(value: EmbedStructure['description']): this
-	public description(value?: EmbedStructure['description']) {
+	public description(): string
+	public description(value: string): this
+	public description(value?: string) {
 		if (value) {
 			if (value.length > 4096) {
 				throw new Error(`embed title can't be larger than 4096 characters (${value})`)
 			}
-			this.definition.description = value
+			this._description = value
 			return this
 		}
-		return this.definition.description
+		return this._description
 	}
 
-	public url(): EmbedStructure['url']
-	public url(value: EmbedStructure['url']): this
-	public url(value?: EmbedStructure['url']) {
+	public url(): string
+	public url(value: string): this
+	public url(value?: string) {
 		if (value) {
-			this.definition.url = value
+			this._url = value
 			return this
 		}
-		return this.definition.url
+		return this._url
 	}
 
-	public timestamp(): EmbedStructure['timestamp']
-	public timestamp(value: EmbedStructure['timestamp']): this
-	public timestamp(value?: EmbedStructure['timestamp']) {
+	public timestamp(): Date
+	public timestamp(value: Date): this
+	public timestamp(value?: Date) {
 		if (value) {
-			this.definition.timestamp = value
+			this._timestamp = value
 			return this
 		}
-		return this.definition.timestamp
+		return this._timestamp
 	}
 
 	public color(): number
@@ -111,7 +107,7 @@ export default class Embed {
 		if (value) {
 			if (typeof value === 'string') {
 				if (value.startsWith('#')) {
-					value = value.substr(1)
+					value = value.substring(1)
 				}
 				const tmp = parseInt(value, 16)
 				if (isNaN(tmp)) {
@@ -119,86 +115,86 @@ export default class Embed {
 				}
 				value = tmp
 			}
-			this.definition.color = value
+			this._color = value
 			return this
 		}
-		return this.definition.color
+		return this._color
 	}
 
-	public footer(): EmbedFooter
+	public footer(): EmbedFooter | undefined
 	public footer(text: string, iconUrl?: string, proxyIconUrl?: string): this
 	public footer(text?: string, iconUrl?: string, proxyIconUrl?: string) {
 		if (text) {
 			if (text.length > 2048) {
 				throw new Error(`embed footer text can't be larger than 2048 characters (${text})`)
 			}
-			this.definition.footer = {text, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
+			this._footer = {text, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
 			return this
 		}
-		return this.definition.footer
+		return this._footer
 	}
 
-	public image(): EmbedImage
+	public image(): EmbedImage | undefined
 	public image(url: string, proxyUrl?: string, width?: number, height?: number): this
 	public image(url?: string, proxyUrl?: string, width?: number, height?: number) {
 		if (url) {
-			this.definition.image = {url, proxy_url: proxyUrl, width, height}
+			this._image = {url, proxy_url: proxyUrl, width, height}
 			return this
 		}
-		return this.definition.image
+		return this._image
 	}
 
-	public thumbnail(): EmbedImage
+	public thumbnail(): EmbedImage | undefined
 	public thumbnail(url: string, proxyUrl?: string, width?: number, height?: number): this
 	public thumbnail(url?: string, proxyUrl?: string, width?: number, height?: number) {
 		if (url) {
-			this.definition.thumbnail = {url, proxy_url: proxyUrl, width, height}
+			this._thumbnail = {url, proxy_url: proxyUrl, width, height}
 			return this
 		}
-		return this.definition.thumbnail
+		return this._thumbnail
 	}
 
-	public video(): EmbedImage
+	public video(): EmbedImage | undefined
 	public video(url: string, proxyUrl?: string, width?: number, height?: number): this
 	public video(url?: string, proxyUrl?: string, width?: number, height?: number) {
 		if (url) {
-			this.definition.video = {url, proxy_url: proxyUrl, width, height}
+			this._video = {url, proxy_url: proxyUrl, width, height}
 			return this
 		}
-		return this.definition.video
+		return this._video
 	}
 
-	public provider(): EmbedStructure['provider']
+	public provider(): EmbedProvider | undefined
 	public provider(name?: string, url?: string): this
 	public provider(name?: string, url?: string) {
 		if (name || url) {
-			this.definition.provider = {name, url}
+			this._provider = {name, url}
 			return this
 		}
-		return this.definition.provider
+		return this._provider
 	}
 
-	public author(): EmbedStructure['author']
+	public author(): EmbedAuthor | undefined
 	public author(name: string, url?: string, iconUrl?: string, proxyIconUrl?: string): this
 	public author(name?: string, url?: string, iconUrl?: string, proxyIconUrl?: string) {
 		if (url || iconUrl || proxyIconUrl) {
-			if (!name) {
+			if (typeof name === 'undefined') {
 				throw new Error('embed author MUST have a name')
 			}
 			if (name && name.length > 256) {
 				throw new Error(`embed author name can't be larger than 256 characters (${name})`)
 			}
-			this.definition.author = {name, url, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
+			this._author = {name, url, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
 			return this
 		}
-		return this.definition.author
+		return this._author
 	}
 
 	public addField(name: string, value: string, inline?: boolean): this {
-		if (!this.definition.fields) {
-			this.definition.fields = []
+		if (!this._fields) {
+			this._fields = []
 		}
-		if (this.definition.fields.length > 25) {
+		if (this._fields.length > 25) {
 			throw new Error(`embed can't have more than 25 fields (embed title: ${this.title()})`)
 		}
 		if (name.length > 256) {
@@ -207,12 +203,12 @@ export default class Embed {
 		if (value.length > 1024) {
 			throw new Error(`embed field value can't be larger than 1024 characters (${value})`)
 		}
-		this.definition.fields.push({name, value, inline})
+		this._fields.push({name, value, inline})
 		return this
 	}
 
 	public removeField(index: number): this {
-		this.definition.fields?.splice(index, 1)
+		this._fields?.splice(index, 1)
 		return this
 	}
 
@@ -221,8 +217,8 @@ export default class Embed {
 	public field(index: number): EmbedField
 	public field(index: number, name: string, value: string, inline?: boolean): this
 	public field(index?: number, name?: string, value?: string, inline?: boolean) {
-		if (!this.definition.fields) {
-			this.definition.fields = []
+		if (!this._fields) {
+			this._fields = []
 		}
 		if (typeof index !== 'undefined' && name && value) {
 			if (name.length > 256) {
@@ -232,11 +228,11 @@ export default class Embed {
 				throw new Error(`embed field value can't be larger than 1024 characters (${value})`)
 			}
 			const field = {name, value, inline: inline ?? false}
-			this.definition.fields[index] = field
+			this._fields[index] = field
 			return this
 		} else if (typeof index == 'number') {
-			return this.definition.fields[index]
+			return this._fields[index]
 		}
-		return this.definition.fields
+		return this._fields
 	}
 }

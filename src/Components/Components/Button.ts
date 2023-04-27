@@ -1,7 +1,7 @@
 import Emoji from '../Emoji'
 import { default as Component, ComponentType } from './Component'
 
-export enum ButtonType {
+export enum ButtonStyle {
 	Primary,
 	Secondary,
 	Success,
@@ -18,7 +18,8 @@ export default class Button extends Component {
 	private _emoji?: Emoji
 	private _callback?: string
 	private _url?: string
-	private _disabled?: boolean
+	private _style?: ButtonStyle = ButtonStyle.Primary
+	private _disabled?: boolean = false
 
 	public constructor() {
 		super(ComponentType.Button)
@@ -47,25 +48,42 @@ export default class Button extends Component {
 	public callback(): string
 	public callback(callback: string): this
 	public callback(callback?: string) {
-		if (callback) {
-			// TODO: move this code to the discord code
-			// if (customID.length > 100) {
-			// 	throw new Error(`CustomIDs can\t be more than 100 characters (${customID})`)
-			// }
-			this._callback = callback
-			return this
+		if (typeof callback === 'undefined') {
+			return this._callback
 		}
-		return this._callback
+		// TODO: move this code to the discord code
+		// if (customID.length > 100) {
+		// 	throw new Error(`CustomIDs can\t be more than 100 characters (${customID})`)
+		// }
+		if (this.style() === ButtonStyle.Link) {
+			this.style(ButtonStyle.Primary)
+		}
+		this._callback = callback
+		return this
 	}
 
 	public url(): string
 	public url(url: string): this
 	public url(url?: string) {
-		if (url) {
-			this._url = url
-			return this
+		if (typeof url === 'undefined') {
+			return this._url
 		}
-		return this._url
+		if (this.style() !== ButtonStyle.Link) {
+			this.style(ButtonStyle.Link)
+		}
+		this._url = url
+		return this
+	}
+
+	public style(): ButtonStyle
+	public style(style: ButtonStyle): this
+	public style(style?: ButtonStyle) {
+		if (typeof style === 'undefined') {
+			return this._style
+		}
+
+		this._style = style
+		return this
 	}
 
 	public disabled(): boolean

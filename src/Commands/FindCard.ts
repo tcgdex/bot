@@ -3,12 +3,12 @@ import ActionRow from '../Components/Components/ActionRow'
 import Select from '../Components/Components/Select'
 import Message from '../Components/Message'
 import CardEmbed from '../Embeds/CardEmbed'
-import { Command, CommandArguments, CommandOptionType } from '../interfaces'
+import { Command, CommandOptionType, CommandOptions, Context } from '../interfaces'
 
-export default class Find implements Command {
-	public name = 'find'
+export default class FindCard implements Command {
+	public name = 'findcard'
 	public description = 'Find a card by it\'s name'
-	public options = [{
+	public options: Array<CommandOptions> = [{
 		name: 'name',
 		description: 'Card name',
 		required: true,
@@ -25,10 +25,13 @@ export default class Find implements Command {
 		type: CommandOptionType.STRING
 	}]
 
-	public async execute({ args }: CommandArguments) {
+	public async execute({ args }: Context) {
 		const tcgdex = new TCGdex('en')
 		let serie: string
 		let set: SetResume
+		if (!args[0]) {
+			return 'Please input at least one parameter'
+		}
 		if (args[1]) {
 			const s = await tcgdex.fetch('series', args[1])
 			if (!s) {
@@ -73,25 +76,29 @@ export default class Find implements Command {
 			return 'Card not found :('
 		}
 
-		let s = new Select('findbyid')
+		let s = new Select()
+			.callback('findcardbyid')
 			.placeholder('Select the card you search')
 
 		const message = new Message()
 			.text('Select the correct card')
 
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < filteredCards.length; i++) {
-			if (i >= 25*5) {
-				message.text(message.text() + `\n_too much cards are available with the current search (${filteredCards.length}) we can only display ${25*5} cards :(_`)
-				break
-			}
+			// TODO: handle discord limitations
+			// if (i >= 25*5) {
+			// 	message.text(message.text() + `\n_too much cards are available with the current search (${filteredCards.length}) we can only display ${25*5} cards :(_`)
+			// 	break
+			// }
 			const iterator = filteredCards[i]
-			if (s.option().length === 25) {
+			if (s.options().length === 25) {
 				if (message.text().endsWith('card')) {
 					message.text(message.text() + '\n_lot of cards were found with this name, maybe an other research will give better results_')
 					s.placeholder('Select the card you search part 1')
 				}
-				message.addRow(new ActionRow(s))
-				s = new Select(`${i}/findbyid`)
+				message.addRow(new ActionRow().components(s))
+				s = new Select()
+					.callback('findcardbyid')
 					.placeholder(`Select the card you search part ${message.row().length + 1}`)
 			}
 			s.addOption(`${iterator.name} - ${sets.find((se) => iterator.id.replace(`-${iterator.localId}`, '').includes(se.id))?.name}`.substr(0, 25), iterator.id)

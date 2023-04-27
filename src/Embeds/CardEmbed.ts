@@ -59,6 +59,7 @@ export default function(card: Card) {
 				.replace('assets.tcgdex.net/', 'www.tcgdex.net/database/')
 				.replace('/en/', '/')
 		)
+		embed.image(`${card.image}/high.png`)
 	}
 	if (card.abilities) {
 		embed.addField(
@@ -86,9 +87,6 @@ export default function(card: Card) {
 			}).join('\n'),
 			false
 		)
-	}
-	if (card.image) {
-		embed.image(`${card.image}/high.png`)
 	}
 	embed
 		.author(card.illustrator ?? '', undefined, card.set.symbol ? `${card.set.symbol}.png` : undefined)

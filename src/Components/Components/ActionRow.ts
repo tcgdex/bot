@@ -4,16 +4,23 @@ export default class ActionRow extends Component {
 
 	private _components: Array<Component> = []
 
-	public constructor() {
+	public constructor(...components: Array<Component>) {
 		super(ComponentType.ActionRow)
+		this.components(components)
 	}
 
 	public components(): Array<Component>
-	public components(components?: Array<Component>) {
+	public components(components: Array<Component> | Component): this
+	public components(components?: Array<Component> | Component) {
 		if (typeof components === 'undefined') {
+			console.log('pouet')
 			return this._components
 		}
-		this._components = components
+		if (Array.isArray(components)) {
+			this._components = components
+		} else {
+			this._components = [components]
+		}
 		return this
 	}
 

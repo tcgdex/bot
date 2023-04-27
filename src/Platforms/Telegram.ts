@@ -1,3 +1,4 @@
+/* eslint-disable no-irregular-whitespace */
 import Logger from '@dzeio/logger'
 import { objectValues } from '@dzeio/object-util'
 import { Telegraf } from 'telegraf'
@@ -6,12 +7,15 @@ import Bot from '../Bot'
 import Button from '../Components/Components/Button'
 import Select from '../Components/Components/Select'
 import Embed from '../Components/Embed'
+import Emoji from '../Components/Emoji'
 import Message from '../Components/Message'
-import { Client } from '../interfaces'
+import { Platform, TelegramContext } from '../interfaces'
 
-const logger = new Logger('Client/Telegram')
+const logger = new Logger('Platforms/Telegram')
 
-export default class Telegram implements Client {
+export default class Telegram implements Platform {
+
+	public name = 'Telegram'
 
 	public get token(): string {
 		const token = process.env.TELEGRAM_TOKEN
@@ -24,7 +28,7 @@ export default class Telegram implements Client {
 	public async init(): Promise<void> {
 		logger.log('loading...')
 
-		const commands = await Bot.get().getCommands()
+		const commands = await Bot.get().getCommands(this)
 
 		const bot = new Telegraf(this.token)
 
@@ -38,13 +42,14 @@ export default class Telegram implements Client {
 		for (const command of objectValues(commands)) {
 			bot.command(command.name, async (ctx) => {
 				logger.log(`processing command: ${ctx.message.text}`)
-				const response = await command.execute({
-					prefix: '/',
-					args: ctx.message.text.split(' ').slice(1),
-					client: this
-				})
+				const response = await Bot.get().handleCommand(this.buildContext(
+					'/',
+					command.name,
+					ctx.message.text.split(' ').slice(1)
+				))
 				ctx.replyWithMarkdownV2(this.formatMessage(response), {
 					reply_markup: {
+						resize_keyboard: true,
 						inline_keyboard: this.formatMarkup(response)
 					}
 				})
@@ -58,17 +63,18 @@ export default class Telegram implements Client {
 			const text: string = ctx.callbackQuery.data
 			logger.log(`processing command: ${text}`)
 			const args = text.split(' ')
-			const command = commands[args.shift() ?? '']
+			const commandTxt = args.shift()
+			if (!commandTxt) {
+				return
+			}
+			const command = commands[commandTxt]
 			if (!command) {
 				ctx.reply('command not found!')
 				return
 			}
-			const response = await command.execute({
-				prefix: '/',
-				args: args,
-				client: this
-			})
-			ctx.replyWithMarkdownV2(this.formatMessage(response), {
+			const response = await Bot.get().handleCommand(this.buildContext('', commandTxt, args))
+			ctx.editMessageText(this.formatMessage(response), {
+				parse_mode: 'MarkdownV2',
 				reply_markup: {
 					inline_keyboard: this.formatMarkup(response)
 				}
@@ -81,23 +87,32 @@ export default class Telegram implements Client {
 
 	private formatMessage(message: Message | string): string {
 		if (typeof message === 'string') {
-			return message
+			return Emoji.formatText(message, () => '')
+				.replace(/([()<>\-.+!?#=()])/g, '\\$1')
+				.replace(/undefined/g, '')
+				.replace(/\n{2,}/g, '\n\n')
 		}
-		return `${message.text()}
+		const msg = `${message.text()}
 
-${message.embed().map(this.formatEmbed)}
-`.replace(/([()<>\-.+])/g, '\\$1')
+${message.embed().map(this.formatEmbed)}`
+
+		return Emoji.formatText(msg, () => '')
+			.replace(/([()<>\-.+!?#=()])/g, '\\$1')
+			.replace(/undefined/g, '')
+			.replace(/\n{2,}/g, '\n\n')
 	}
 
 	private formatEmbed(embed: Embed) {
-		return `${embed.title()}
+		return `*${embed.title()}*
+
+${embed.image()?.url}
 
 ${embed.description()}
 
-${embed.field().map((field) => `${field.name}
+${embed.field().map((field) => `*${field.name}*
 ${field.value}`).join('\n\n')}
 
-${embed.footer()}`
+${embed.footer()?.text}`
 	}
 
 	private formatMarkup(message: Message | string): Array<Array<InlineKeyboardButton>> {
@@ -109,19 +124,28 @@ ${embed.footer()}`
 			if (component instanceof Button) {
 				return {
 					text: component.label(),
-					callback_data: component.customID(),
+					callback_data: component.callback(),
 					url: component.url()
 				}
 			// because we can't have selectors, we display a big list of buttons
 			} else if (component instanceof Select) {
-				return component.option().map((choice) => ({
+				return component.options().map((choice) => ({
 					text: choice.label,
-					callback_data: `${component.customID()} ${choice.value}`
+					callback_data: `${component.callback()} ${choice.value}`
 				}))
 			}
 			throw new Error('unhandled type')
 		}).flat(1))
 
+	}
+
+	private buildContext(prefix: string, command: string, args: Array<string>): TelegramContext {
+		return {
+			prefix,
+			args,
+			command,
+			platform: this
+		}
 	}
 
 }

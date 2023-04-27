@@ -45,9 +45,10 @@ export default class Message {
 	}
 
 	public addRow(...ar: Array<ActionRow>): this {
-		if (this.components.length > 5) {
-			throw new Error('You can have more than 5 Action Rows per message')
-		}
+		// TODO: add this to the discord code
+		// if (this.components.length > 5) {
+		// 	throw new Error('You can have more than 5 Action Rows per message')
+		// }
 		this.components.push(...ar)
 		return this
 	}
@@ -55,7 +56,6 @@ export default class Message {
 	public removeRow(index: number) {
 		this.components.splice(index, 1)
 	}
-
 
 	public embed(): Array<Embed>
 	public embed(embed: Embed, index?: number): this
