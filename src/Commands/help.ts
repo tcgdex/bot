@@ -17,13 +17,13 @@ export default class Help implements Command {
 
 		const buttons = [
 			new Button().url('https://www.tcgdex.net').label('Website'),
-			new Button().url('https://github.com/tcgdex/discord').label('Github'),
+			new Button().url('https://github.com/tcgdex/bot').label('Github'),
 		]
 
 		if (platform instanceof Discord) {
 			buttons.push(
 				new Button().url('https://discord.gg/HGnvEp3reF').label('Discord Server'),
-				new Button().url('https://discord.com/api/oauth2/authorize?client_id=465978667022024704&permissions=329728&scope=bot%20applications.commands').label('Invite me !')
+				new Button().url('https://discord.com/api/oauth2/authorize?client_id=465978667022024704&permissions=274878171200&scope=bot%20applications.commands').label('Invite me !')
 			)
 		} else if (platform instanceof Telegram) {
 			buttons.push(
