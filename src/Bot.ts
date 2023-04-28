@@ -42,12 +42,12 @@ export default class Bot {
 		// registers commands into the bot
 		// get the commands files
 		Bot.instance = this
-		const ds = (await import('../discord.json')).default
+		const ds = JSON.parse(await fs.readFile('../discord.json', 'utf-8'))
 		const botsToLoad: Array<Promise<void>> = []
 		if (ds.enabled) {
 			botsToLoad.push(new Discord(ds).init())
 		}
-		const tm = (await import('../telegram.json')).default
+		const tm = JSON.parse(await fs.readFile('../telegram.json', 'utf-8'))
 		if (tm.enabled) {
 			botsToLoad.push(new Telegram().init())
 		}
