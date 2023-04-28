@@ -13,7 +13,6 @@ export default class ActionRow extends Component {
 	public components(components: Array<Component> | Component): this
 	public components(components?: Array<Component> | Component) {
 		if (typeof components === 'undefined') {
-			console.log('pouet')
 			return this._components
 		}
 		if (Array.isArray(components)) {

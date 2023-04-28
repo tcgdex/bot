@@ -290,7 +290,6 @@ export default class Discord implements Platform {
 						}
 						return tmp
 					} else if (component instanceof Select) {
-						console.log(component.options().length)
 						const tmp: StringSelectMenuComponentData = {
 							type: ComponentType.StringSelect,
 							customId: rowIdx + '' + compIdx + '/' + component.callback(),
