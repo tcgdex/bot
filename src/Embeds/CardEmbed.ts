@@ -16,7 +16,7 @@ export default function(card: Card) {
 			'id', 'localId', 'suffix', 'category', 'retreat'
 		].includes(item))
 	for (const field of items) {
-		const display = field.substr(0, 1).toUpperCase() + field.substr(1)
+		const display = field.substring(0, 1).toUpperCase() + field.substr(1)
 		const value = card[field as 'name'] ?? '---'
 		if (Array.isArray(value)) {
 			embed.addField(display, replaceTypesByEmojis(value.join(', ')), true)
@@ -59,6 +59,7 @@ export default function(card: Card) {
 				.replace('assets.tcgdex.net/', 'www.tcgdex.net/database/')
 				.replace('/en/', '/')
 		)
+		embed.image(`${card.image}/high.png`)
 	}
 	if (card.abilities) {
 		embed.addField(
@@ -87,11 +88,8 @@ export default function(card: Card) {
 			false
 		)
 	}
-	if (card.image) {
-		embed.image(`${card.image}/high.png`)
-	}
 	embed
-		.author(card.illustrator, undefined, card.set.symbol ? `${card.set.symbol}.png` : undefined)
+		.author(card.illustrator ?? '', undefined, card.set.symbol ? `${card.set.symbol}.png` : undefined)
 		.title(title)
 		.addField('Set', card.set.name, true)
 

@@ -1,3 +1,5 @@
+import Emoji from './Components/Emoji'
+
 /**
  * Replace Types in texts by Discord Emojis
  */
@@ -19,7 +21,7 @@ export function replaceTypesByEmojis(text: string): string {
 	for (const emoji of Object.keys(emojis)) {
 		text = text.replace(
 			new RegExp(emoji.replace('~1', ''), 'gu'),
-			`<:${emoji.toLowerCase()}:${emojis[emoji as 'Colorless']}>`
+			new Emoji(emojis[emoji as 'Colorless'], emoji).toString()
 		) ?? text
 	}
 	return text

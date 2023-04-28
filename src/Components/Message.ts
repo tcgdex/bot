@@ -1,8 +1,7 @@
-import { MessageOptions } from 'discord.js'
-import Button from './MessageComponent/Button'
+import ActionRow from './Components/ActionRow'
+import Button from './Components/Button'
+import Select from './Components/Select'
 import Embed from './Embed'
-import Select from './MessageComponent/Select'
-import ActionRow from './MessageComponent/ActionRow'
 
 export type MessageComponents = Button | Select
 
@@ -46,9 +45,10 @@ export default class Message {
 	}
 
 	public addRow(...ar: Array<ActionRow>): this {
-		if (this.components.length > 5) {
-			throw new Error('You can have more than 5 Action Rows per message')
-		}
+		// TODO: add this to the discord code
+		// if (this.components.length > 5) {
+		// 	throw new Error('You can have more than 5 Action Rows per message')
+		// }
 		this.components.push(...ar)
 		return this
 	}
@@ -56,7 +56,6 @@ export default class Message {
 	public removeRow(index: number) {
 		this.components.splice(index, 1)
 	}
-
 
 	public embed(): Array<Embed>
 	public embed(embed: Embed, index?: number): this
@@ -70,13 +69,5 @@ export default class Message {
 			this.embeds.push(embed)
 		}
 		return this
-	}
-
-	public toDiscordJS(): MessageOptions {
-		return {
-			content: this.text(),
-			embeds: this.embed().map((e) => e.toDiscordJS()),
-			components: this.components.map((r) => r.toDiscordJS() as any)
-		}
 	}
 }
