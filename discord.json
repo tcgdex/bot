@@ -1,5 +1,8 @@
 {
 	"enabled": true,
-	"intents": [],
+	"intents": [
+		"Guilds",
+		"GuildMessages"
+	],
 	"emojis": []
 }
