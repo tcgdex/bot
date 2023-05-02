@@ -73,12 +73,16 @@ export default class Telegram implements Platform {
 				return
 			}
 			const response = await Bot.get().handleCommand(this.buildContext('', commandTxt, args))
-			ctx.editMessageText(this.formatMessage(response), {
-				parse_mode: 'MarkdownV2',
-				reply_markup: {
-					inline_keyboard: this.formatMarkup(response)
-				}
-			})
+			try {
+				ctx.editMessageText(this.formatMessage(response), {
+					parse_mode: 'MarkdownV2',
+					reply_markup: {
+						inline_keyboard: this.formatMarkup(response)
+					}
+				})
+			} catch (error) {
+				logger.warn('command failed being edited', error)
+			}
 			logger.log(`command processed: ${text}`)
 		})
 		bot.launch()
