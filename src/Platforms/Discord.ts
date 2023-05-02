@@ -70,7 +70,6 @@ export default class Discord implements Platform {
 				activities: [{name: `${size.size} servers | ${this.prefix} help`, type: ActivityType.Listening}]
 			})
 
-
 			logger.log(`Loaded, Logged in as ${this.client.user?.tag}`)
 		})
 

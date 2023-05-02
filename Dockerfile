@@ -1,4 +1,4 @@
-FROM node:alpine as BUILD_IMAGE
+FROM node:20-alpine as BUILD_IMAGE
 
 WORKDIR /app
 
@@ -14,10 +14,10 @@ ADD . .
 RUN npm run build
 
 # remove dev dependencies
-RUN npm prune --production
+RUN npm prune --omit=dev
 
 # go to another VM
-FROM node:alpine
+FROM node:20-alpine
 
 # go to folder
 WORKDIR /app
