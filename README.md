@@ -36,8 +36,9 @@ Browse the Pokemon Trading Card game cards using the TCGdex BOT
 
 For the bot to work correcly it needs the following permissions
 
-| Permission           | Why                                       |
-|----------------------|-------------------------------------------|
-| Send Messages        | To be able to write answers               |
-| Read Message History | To be able to Reply to users              |
-| Use EXternal Emojis  | To have nices emojis instead of `:thing:` |
+| Permission               | Why                                       |
+|--------------------------|-------------------------------------------|
+| Send Messages            | To be able to write answers               |
+| Send Messages in Threads | To be able to write answers in threads    |
+| Read Message History     | To be able to Reply to messages           |
+| Use EXternal Emojis      | To have nices emojis instead of `:thing:` |
