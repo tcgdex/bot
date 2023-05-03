@@ -67,20 +67,28 @@ export default class Discord implements Platform {
 
 		this.client.on('ready', async () => {
 			await this.refreshCommands()
-			// Fetch guilds count and display it
-			const size = await this.client.guilds.fetch()
-			this.client.user?.setPresence({
-				activities: [{name: `${size.size} servers | ${this.prefix} help`, type: ActivityType.Listening}]
-			})
+			await this.updatePresence()
 
 			logger.log(`Loaded, Logged in as ${this.client.user?.tag}`)
 		})
 
-		this.client.on('interactionCreate', this.onInteraction)
+		// update guild count
+		this.client.on('guildCreate', this.updatePresence)
+		this.client.on('guildDelete', this.updatePresence)
 
+		// handle messages
+		this.client.on('interactionCreate', this.onInteraction)
 		this.client.on('messageCreate', this.onMessage)
 
 		this.client.login(this.token)
+	}
+
+	private updatePresence = async () => {
+		// Fetch guilds count and display it
+		const size = await this.client.guilds.fetch()
+		this.client.user?.setPresence({
+			activities: [{name: `${size.size} servers | ${this.prefix} help`, type: ActivityType.Listening}]
+		})
 	}
 
 	private async refreshCommands() {
