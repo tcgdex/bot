@@ -5,6 +5,7 @@ import {
 	BaseMessageOptions,
 	ButtonComponentData,
 	CacheType,
+	ChannelType,
 	ComponentType,
 	Client as DiscordClient,
 	Message as DiscordMessage,
@@ -12,6 +13,7 @@ import {
 	Interaction,
 	MessageActionRowComponentData,
 	MessagePayload,
+	Partials,
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore f*ck
 	REST,
@@ -59,7 +61,8 @@ export default class Discord implements Platform {
 	public async init() {
 		logger.log('Loading...')
 		this.client = new DiscordClient({
-			intents: this.config.intents?.map((it) => GatewayIntentBits[it as 'Guilds']) ?? []
+			intents: this.config.intents?.map((it) => GatewayIntentBits[it as 'Guilds']) ?? [],
+			partials: this.config.partials?.map((it) => Partials[it as 'Channel']) ?? []
 		})
 
 		this.client.on('ready', async () => {
@@ -130,15 +133,22 @@ export default class Discord implements Platform {
 		return -1
 	}
 
+	// eslint-disable-next-line complexity
 	private onMessage = async (message: DiscordMessage<boolean>) => {
 		// Ignore message by bots
 		if (message.author.bot) {
 			return
 		}
 
+		console.log(message.channel.type === ChannelType.DM)
+
 		// Get the prefix
 		const args = message.content.trim().split(/ +/)
 		let prefix = args.shift()
+		if (prefix && message.channel.type === ChannelType.DM) {
+			args.unshift(prefix)
+			prefix = this.prefix
+		}
 
 		// ignore message not started by the bot's name or PREFIX
 		if (

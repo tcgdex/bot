@@ -2,7 +2,11 @@
 	"enabled": true,
 	"intents": [
 		"Guilds",
-		"GuildMessages"
+		"GuildMessages",
+		"DirectMessages"
+	],
+	"partials": [
+		"Channel"
 	],
 	"emojis": []
 }

@@ -112,6 +112,7 @@ export interface Platform {
 export interface DiscordConfig {
 	enabled: boolean
 	intents?: Array<string>
+	partials?: Array<string>
 }
 
 export interface TelegramConfig {
