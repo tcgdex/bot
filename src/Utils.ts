@@ -1,4 +1,7 @@
+import { objectKeys } from '@dzeio/object-util'
+import TCGdex from '@tcgdex/sdk'
 import Emoji from './Components/Emoji'
+import { Localized } from './interfaces'
 
 /**
  * Replace Types in texts by Discord Emojis
@@ -25,4 +28,43 @@ export function replaceTypesByEmojis(text: string): string {
 		) ?? text
 	}
 	return text
+}
+
+/**
+ * shortcut to translate elements
+ */
+export const t = getLocalizedValue
+
+export function getLocalizedValue(it: Localized | string, lang?: keyof Localized) {
+
+	if (typeof it === 'string') {
+		return it
+	}
+
+	if (lang && lang in it) {
+		return it[lang] as NonNullable<typeof it['en']>
+	}
+	return it[objectKeys(it)[0]] as NonNullable<typeof it['en']>
+}
+
+
+export function clamp(value: number, min: number, max: number): number {
+	return Math.max(Math.min(value, max), min)
+}
+
+export function getTCGdexLang(locale?: keyof Localized): NonNullable<TCGdex['lang']> {
+	if (!locale) {
+		return 'en'
+	}
+	switch (locale) {
+		case 'en':
+		case 'es':
+		case 'fr':
+		case 'pt':
+		case 'it':
+		case 'de':
+			return locale
+		default:
+			return 'en'
+	}
 }

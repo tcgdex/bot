@@ -8,5 +8,9 @@
 	"partials": [
 		"Channel"
 	],
-	"emojis": []
+	"emojis": [],
+	"componentsLimit": {
+		"en": "_due to discord limits we can't show you everything._",
+		"fr": "_due à des limites de Discord, je ne peux pas tout montrer._"
+	}
 }

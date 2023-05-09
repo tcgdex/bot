@@ -6,6 +6,11 @@ export interface Context {
 	args: Array<string>
 
 	/**
+	 * if the request language is known, add it to the context
+	 */
+	lang?: keyof Localized
+
+	/**
 	 * Discord or Telegram depending the client that ask the command
 	 */
 	platform: Platform
@@ -27,7 +32,7 @@ export enum CommandOptionType {
 	/**
 	 * group of commands
 	 */
-	COMMAND_GROUP,
+	COMMANDS,
 	STRING,
 	INTEGER,
 	BOOLEAN,
@@ -38,14 +43,14 @@ export enum CommandOptionType {
 }
 
 export interface CommandOptionChoice {
-	name: string
+	name: string | Localized
 	value: string | number
 }
 
 interface BaseCommandOptions {
 	type: CommandOptionType
-	name: string
-	description: string
+	name: string | Localized
+	description: string | Localized
 	required?: boolean
 }
 
@@ -53,28 +58,58 @@ interface BaseCommandOptions {
 export type CommandOptions = SubCommandOptions | FieldCommandOptions
 
 export interface SubCommandOptions extends BaseCommandOptions {
-	type: CommandOptionType.COMMAND_GROUP
+	type: CommandOptionType.COMMANDS
 	commands: Array<Command>
 }
 
 export interface FieldCommandOptions extends BaseCommandOptions {
 	type: CommandOptionType.STRING | CommandOptionType.INTEGER | CommandOptionType.USER | CommandOptionType.ROLE | CommandOptionType.MENTIONABLE
-	name: string
-	description: string
 	choices?: Array<CommandOptionChoice>
 	options?: Array<CommandOptions>
+}
+
+export interface Localized<T = string> {
+	id?: T
+	da?: T
+	de?: T
+	en?: T
+	es?: T
+	fr?: T
+	hr?: T
+	it?: T
+	lt?: T
+	hu?: T
+	nl?: T
+	no?: T
+	pl?: T
+	pt?: T
+	ro?: T
+	fi?: T
+	sv?: T
+	vi?: T
+	tr?: T
+	cs?: T
+	el?: T
+	bg?: T
+	ru?: T
+	uk?: T
+	hi?: T
+	th?: T
+	zh?: T
+	ja?: T
+	ko?: T
 }
 
 export interface Command {
 	/**
 	 * the name of the command
 	 */
-	name: string
+	name: string | Localized
 
 	/**
 	 * Displayed description of the command
 	 */
-	description: string
+	description: string | Localized
 
 	/**
 	 * Command execution options
@@ -109,12 +144,22 @@ export interface Platform {
 	init(): Promise<void>
 }
 
-export interface DiscordConfig {
+export interface Config {
+	defaultLang?: keyof Localized
+}
+
+export interface DiscordConfig extends Config {
 	enabled: boolean
 	intents?: Array<string>
 	partials?: Array<string>
+	componentsLimit?: string | Localized
 }
 
-export interface TelegramConfig {
+export interface TelegramConfig extends Config {
 	enabled: boolean
+	components?: {
+		select?: {
+			optionsPerLines?: number
+		}
+	}
 }

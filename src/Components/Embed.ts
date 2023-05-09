@@ -51,34 +51,40 @@ export default class Embed {
 	private _fields: Array<EmbedField> = []
 
 	public constructor(title?: string, description?: string) {
-		this._title = title ?? ' '
-		this._description = description ?? ' '
+		if (title) {
+			this._title = title ?? ' '
+		}
+		if (description) {
+			this._description = description ?? ' '
+		}
 	}
 
 	public title(): string
 	public title(value: string): this
 	public title(value?: string) {
-		if (value) {
-			if (value.length > 256) {
-				throw new Error(`embed title can't be larger than 256 characters (${value})`)
-			}
-			this._title = value
-			return this
+		if (typeof value === 'undefined') {
+			return this._title
 		}
-		return this._title
+		// TODO: add limit in Discord.ts
+		// if (value.length > 256) {
+		// 	throw new Error(`embed title can't be larger than 256 characters (${value})`)
+		// }
+		this._title = value
+		return this
 	}
 
 	public description(): string
 	public description(value: string): this
 	public description(value?: string) {
-		if (value) {
-			if (value.length > 4096) {
-				throw new Error(`embed title can't be larger than 4096 characters (${value})`)
-			}
-			this._description = value
-			return this
+		if (typeof value === 'undefined') {
+			return this._description
 		}
-		return this._description
+		// TODO: add limit in Discord.ts
+		// if (value.length > 4096) {
+		// 	throw new Error(`embed title can't be larger than 4096 characters (${value})`)
+		// }
+		this._description = value
+		return this
 	}
 
 	public url(): string
@@ -125,9 +131,10 @@ export default class Embed {
 	public footer(text: string, iconUrl?: string, proxyIconUrl?: string): this
 	public footer(text?: string, iconUrl?: string, proxyIconUrl?: string) {
 		if (text) {
-			if (text.length > 2048) {
-				throw new Error(`embed footer text can't be larger than 2048 characters (${text})`)
-			}
+			// TODO: add limit in Discord.ts
+			// if (text.length > 2048) {
+			// 	throw new Error(`embed footer text can't be larger than 2048 characters (${text})`)
+			// }
 			this._footer = {text, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
 			return this
 		}
@@ -177,32 +184,31 @@ export default class Embed {
 	public author(): EmbedAuthor | undefined
 	public author(name: string, url?: string, iconUrl?: string, proxyIconUrl?: string): this
 	public author(name?: string, url?: string, iconUrl?: string, proxyIconUrl?: string) {
-		if (url || iconUrl || proxyIconUrl) {
-			if (typeof name === 'undefined') {
-				throw new Error('embed author MUST have a name')
-			}
-			if (name && name.length > 256) {
-				throw new Error(`embed author name can't be larger than 256 characters (${name})`)
-			}
-			this._author = {name, url, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
-			return this
+		if (typeof name === 'undefined') {
+			return this._author
 		}
-		return this._author
+		// TODO: add limit in Discord.ts
+		// if (name && name.length > 256) {
+		// 	throw new Error(`embed author name can't be larger than 256 characters (${name})`)
+		// }
+		this._author = {name, url, icon_url: iconUrl, proxy_icon_url: proxyIconUrl}
+		return this
 	}
 
 	public addField(name: string, value: string, inline?: boolean): this {
 		if (!this._fields) {
 			this._fields = []
 		}
-		if (this._fields.length > 25) {
-			throw new Error(`embed can't have more than 25 fields (embed title: ${this.title()})`)
-		}
-		if (name.length > 256) {
-			throw new Error(`embed field title can't be larger than 256 characters (${name})`)
-		}
-		if (value.length > 1024) {
-			throw new Error(`embed field value can't be larger than 1024 characters (${value})`)
-		}
+		// TODO: add limit in Discord.ts
+		// if (this._fields.length > 25) {
+		// 	throw new Error(`embed can't have more than 25 fields (embed title: ${this.title()})`)
+		// }
+		// if (name.length > 256) {
+		// 	throw new Error(`embed field title can't be larger than 256 characters (${name})`)
+		// }
+		// if (value.length > 1024) {
+		// 	throw new Error(`embed field value can't be larger than 1024 characters (${value})`)
+		// }
 		this._fields.push({name, value, inline})
 		return this
 	}
@@ -221,12 +227,13 @@ export default class Embed {
 			this._fields = []
 		}
 		if (typeof index !== 'undefined' && name && value) {
-			if (name.length > 256) {
-				throw new Error(`embed field title can't be larger than 256 characters (${name})`)
-			}
-			if (value.length > 1024) {
-				throw new Error(`embed field value can't be larger than 1024 characters (${value})`)
-			}
+			// TODO: add limit in Discord.ts
+			// if (name.length > 256) {
+			// 	throw new Error(`embed field title can't be larger than 256 characters (${name})`)
+			// }
+			// if (value.length > 1024) {
+			// 	throw new Error(`embed field value can't be larger than 1024 characters (${value})`)
+			// }
 			const field = {name, value, inline: inline ?? false}
 			this._fields[index] = field
 			return this

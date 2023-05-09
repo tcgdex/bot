@@ -1,5 +1,5 @@
 import Logger from '@dzeio/logger'
-import { objectValues } from '@dzeio/object-util'
+import { objectClone } from '@dzeio/object-util'
 import {
 	ActivityType,
 	BaseMessageOptions,
@@ -11,21 +11,23 @@ import {
 	Message as DiscordMessage,
 	GatewayIntentBits,
 	Interaction,
-	MessageActionRowComponentData,
+	Locale,
 	MessagePayload,
 	Partials,
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore f*ck
 	REST,
 	Routes,
-	StringSelectMenuComponentData
 } from 'discord.js'
 import Bot from '../Bot'
+import ActionRow from '../Components/Components/ActionRow'
 import Button from '../Components/Components/Button'
-import Select from '../Components/Components/Select'
+import Component from '../Components/Components/Component'
+import Select, { SelectOptionStructure } from '../Components/Components/Select'
 import Emoji from '../Components/Emoji'
 import Message from '../Components/Message'
-import { CommandOptionType, CommandOptions, DiscordConfig, DiscordContext, Platform } from '../interfaces'
+import { getLocalizedValue } from '../Utils'
+import { CommandOptionType, CommandOptions, DiscordConfig, DiscordContext, Localized, Platform } from '../interfaces'
 
 const logger = new Logger('Platforms/Discord')
 
@@ -96,29 +98,40 @@ export default class Discord implements Platform {
 		const rest = new REST({ version: '10' }).setToken(this.token)
 
 		rest.put(Routes.applicationCommands(this.clientId), {
-			body: objectValues(commands).map((command) => ({
-				name: command.name,
-				description: command.description,
-				options: command.options?.map(this.formatOption).flat()
-			}))
+			body: commands.map((command) => {
+				const defaultName = getLocalizedValue(command.name, this.config.defaultLang)
+				const defaultDescription = getLocalizedValue(command.description, this.config.defaultLang)
+
+				return {
+					name: defaultName,
+					name_localizations: typeof command.name === 'object' ? this.remapLocalized(command.name) : undefined,
+					description: defaultDescription,
+					description_localizations: typeof command.description === 'object' ? this.remapLocalized(command.description) : undefined,
+					options: command.options?.map(this.formatOption).flat()
+				}
+			})
 		})
 	}
 
 	private formatOption = (option: CommandOptions): any => {
-		if (option.type === CommandOptionType.COMMAND_GROUP) {
+		if (option.type === CommandOptionType.COMMANDS) {
 			return option.commands.map((cmd) => ({
 				type: 1,
-				name: cmd.name,
+				name: getLocalizedValue(cmd.name, this.config.defaultLang),
+				name_localizations: typeof cmd.name === 'object' ? this.remapLocalized(cmd.name) : undefined,
+				description_localizations: typeof cmd.description === 'object' ? this.remapLocalized(cmd.description) : undefined,
+				description: getLocalizedValue(cmd.description, this.config.defaultLang),
 				required: false,
-				description: cmd.description,
 				options: cmd.options?.map(this.formatOption)
 			}))
 		}
 
 		return {
 			type: this.typeToDiscordType(option.type),
-			name: option.name,
-			description: option.description,
+			name: getLocalizedValue(option.name, this.config.defaultLang),
+			name_localizations: typeof option.name === 'object' ? this.remapLocalized(option.name) : undefined,
+			description_localizations: typeof option.description === 'object' ? this.remapLocalized(option.description) : undefined,
+			description: getLocalizedValue(option.description, this.config.defaultLang),
 			required: option.required,
 			choices: option.choices,
 			options: option.options?.map(this.formatOption)
@@ -148,30 +161,31 @@ export default class Discord implements Platform {
 			return
 		}
 
-		console.log(message.channel.type === ChannelType.DM)
-
 		// Get the prefix
 		const args = message.content.trim().split(/ +/)
 		let prefix = args.shift()
-		if (prefix && message.channel.type === ChannelType.DM) {
+
+		// handle messages sent in DM
+		if (prefix && message.channel.type === ChannelType.DM && !prefix.includes(this.clientId)) {
 			args.unshift(prefix)
-			prefix = this.prefix
+			prefix = ''
+		} else {
+			// ignore message not started by the bot's name or PREFIX
+			if (
+				!prefix ||
+				!this.client.user ||
+				!(
+					prefix.toLowerCase() === this.prefix.toLowerCase()
+				) &&
+				!(
+					prefix === `<@!${this.clientId}>` ||
+					prefix === `<@${this.clientId}>`
+				)
+			) {
+				return
+			}
 		}
 
-		// ignore message not started by the bot's name or PREFIX
-		if (
-			!prefix ||
-			!this.client.user ||
-			!(
-				prefix.toLowerCase() === this.prefix.toLowerCase()
-			) &&
-			!(
-				prefix === `<@!${this.client.user.id}>` ||
-				prefix === `<@${this.client.user.id}>`
-			)
-		) {
-			return
-		}
 
 		// Replace ths client user id by the username so it's easier to read
 		if (prefix === `<@!${this.clientId}>` || prefix === `<@${this.clientId}>`) {
@@ -180,16 +194,17 @@ export default class Discord implements Platform {
 		}
 
 		// Get the command
-		const command = args.shift()
+		let command = args.shift()
 
-		const commands = await Bot.get().getCommands()
 		// ignore message if the command does not exist
-		if (!command || !commands[command]) {
-			return
+		if (!command) {
+			command = 'help'
 		}
+
 		logger.log(`processing command: ${command} ${args.join(' ')}`)
 
 		// Handle command like a slash command
+		message.author.fetch()
 		try {
 			const msg = await message.reply('<a:typing:861888874404773888> Sending Command...')
 			try {
@@ -208,7 +223,9 @@ export default class Discord implements Platform {
 		}
 	}
 
+	// eslint-disable-next-line complexity
 	private onInteraction = async (interaction: Interaction<CacheType>) => {
+		const locale = this.getLocale(interaction.locale)
 		// handle buttons and selects
 		if (interaction.isMessageComponent()) {
 
@@ -236,7 +253,7 @@ export default class Discord implements Platform {
 			try {
 
 				// Process and edit the original message
-				const response = await Bot.get().handleCommand(this.buildContext('/', command, args))
+				const response = await Bot.get().handleCommand(this.buildContext('/', command, args, locale))
 				interaction.update(this.formatMessage(response))
 				logger.log(`command processed: ${command} ${args.join(' ')}`)
 			} catch (error) {
@@ -254,7 +271,7 @@ export default class Discord implements Platform {
 			try {
 
 				// Process and reply to the message
-				const response = await Bot.get().handleCommand(this.buildContext('/', interaction.commandName, args))
+				const response = await Bot.get().handleCommand(this.buildContext('/', interaction.commandName, args, locale))
 				interaction.reply(this.formatMessage(response))
 				logger.log(`command processed: ${interaction.commandName} ${args.join(' ')}`)
 			} catch (error) {
@@ -270,8 +287,15 @@ export default class Discord implements Platform {
 			return message
 		}
 
+		let text = message.text()
+		const components = message.row().map(this.processRow).flat(1)
+		if (components.length > 5 && this.config.componentsLimit) {
+			text += '\n'
+			text += typeof this.config.componentsLimit === 'string' ? this.config.componentsLimit : getLocalizedValue(this.config.componentsLimit)
+		}
+
 		const payload: BaseMessageOptions = {
-			content: message.text(),
+			content: text,
 			embeds: message.embed().map((embed) => {
 				const color = embed.color()
 				const fields = embed.field()
@@ -292,55 +316,119 @@ export default class Discord implements Platform {
 					fields: fields
 				}
 			}),
-			components: message.row().slice(0, 5).map((row, rowIdx) => ({
-				type: ComponentType.ActionRow,
-				components: row.components().slice(0, 5).map<MessageActionRowComponentData>((component, compIdx) => {
-					if (component instanceof Button) {
-						const cb = component.callback()
-						const tmp: ButtonComponentData = {
-							customId: cb ? rowIdx + '' + compIdx + '/' + cb : undefined,
-							style: component.style() + 1,
-							disabled: component.disabled(),
-							label: component.label(),
-							url: component.url(),
-							type: ComponentType.Button
-						}
-						return tmp
-					} else if (component instanceof Select) {
-						const tmp: StringSelectMenuComponentData = {
-							type: ComponentType.StringSelect,
-							customId: rowIdx + '' + compIdx + '/' + component.callback(),
-							maxValues: component.maxValue(),
-							minValues: component.minValue(),
-							placeholder: component.placeholder(),
-							options: component.options().slice(0, 25).map((opt) => ({
-								default: opt.default,
-								description: opt.description,
-								// emoji: opt.
-								label: opt.label,
-								value: opt.value
-							}))
-						}
-						return tmp
-					}
-					throw new Error('wat')
-				})
-			}))
+			components: components.slice(0, 5) as any
 		}
 		return payload
 	}
 
-	private buildContext(prefix: string, command: string, args: Array<string>): DiscordContext {
+	private buildContext(prefix: string, command: string, args: Array<string>, locale?: keyof Localized): DiscordContext {
 		return {
 			prefix,
 			command,
 			args,
 			platform: this,
-
+			lang: locale
 		}
 	}
 
 	private formatEmoji(emoji: Emoji) {
 		return `<:${emoji.name?.toLowerCase()}:${emoji.id}>`
+	}
+
+	private remapLocalized(localization: Localized) {
+		const clone: any = objectClone(localization)
+
+		clone['en-GB'] = clone.en
+		clone['en-US'] = clone.en
+		delete clone.en
+		clone['es-ES'] = clone.es
+		delete clone.es
+		clone['pt-BR'] = clone.pt
+		delete clone.pt
+		clone['sv-SE'] = clone.sv
+		delete clone.sv
+		clone['zh-CN'] = clone.zh
+		clone['zh-TW'] = clone.zh
+		delete clone.zh
+		return clone
+	}
+
+	// eslint-disable-next-line complexity
+	private getLocale(locale: Locale): keyof Localized {
+		switch (locale) {
+			case Locale.ChineseCN:
+			case Locale.ChineseTW:
+				return 'zh'
+			case Locale.EnglishGB:
+			case Locale.EnglishUS:
+				return 'en'
+			case Locale.SpanishES:
+				return 'es'
+			case Locale.PortugueseBR:
+				return 'pt'
+			case Locale.Swedish:
+				return 'sv'
+			default:
+				return locale
+		}
+	}
+
+	private processRow = (row: ActionRow, idx: number) => {
+		console.log(row, idx, row.components())
+		const components = row.components().map(this.processComponent(idx)).flat(1)
+		const sub: Array<typeof components> = []
+		for (let cIdx = 0; cIdx < components.length; cIdx += 5) {
+			let tmp = components.slice(cIdx, cIdx + 5)
+			if (tmp[0].type === ComponentType.StringSelect) {
+				tmp = [tmp[0]]
+				cIdx -= 4
+			}
+			console.log(tmp)
+			// if (tmp.find((comp) => comp instanceof Select) && tmp.length > 1) {
+			// 	logger.warn('Component can\'t be added because there is already another component in')
+			// }
+			sub.push(tmp)
+		}
+		return sub.map((it) => ({
+			type: ComponentType.ActionRow,
+			components: it
+		}))
+	}
+
+	private processComponent = (rowIdx: number) => (component: Component, compIdx: number) => {
+		if (component instanceof Button) {
+			const cb = component.callback()
+			const tmp: ButtonComponentData = {
+				customId: cb ? rowIdx + '' + compIdx + '/' + cb : undefined,
+				style: component.style() + 1,
+				disabled: component.disabled(),
+				label: component.label(),
+				url: component.url(),
+				type: ComponentType.Button
+			}
+			return tmp
+		} else if (component instanceof Select) {
+			const options: Array<Array<SelectOptionStructure>> = []
+			const tmp = component.options()
+			for (let optIdx = 0; optIdx < tmp.length; optIdx += 25) {
+				options.push(tmp.slice(optIdx, optIdx + 25))
+			}
+
+			return options.map((opts, idx) => ({
+				type: ComponentType.StringSelect,
+				customId: idx + '' + rowIdx + '' + compIdx + '/' + component.callback(),
+				maxValues: component.maxValue(),
+				minValues: component.minValue(),
+				placeholder: component.placeholder(),
+				options: opts.map((opt) => ({
+					default: opt.default,
+					description: opt.description,
+					// emoji: opt.
+					label: opt.label,
+					value: opt.value
+				}))
+			}))
+		}
+		throw new Error('wat')
 	}
 }

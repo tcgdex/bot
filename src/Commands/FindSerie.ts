@@ -3,20 +3,33 @@ import ActionRow from '../Components/Components/ActionRow'
 import Select from '../Components/Components/Select'
 import Message from '../Components/Message'
 import SerieEmbed from '../Embeds/SerieEmbed'
+import { getTCGdexLang } from '../Utils'
 import { Command, CommandOptionType, CommandOptions, Context } from '../interfaces'
 
 export default class FindSerie implements Command {
-	public name = 'findserie'
-	public description = 'Find and display a serie informations'
+	public name = {
+		en: 'findserie',
+		fr: 'trouverserie'
+	}
+	public description = {
+		en: 'Find and display a serie informations',
+		fr: 'Trouver et afficher les informatiosn d\'une série'
+	}
 	public options: Array<CommandOptions> = [{
-		name: 'name',
-		description: 'Serie\'s name/ID',
+		name: {
+			en: 'name',
+			fr: 'nom'
+		},
+		description: {
+			en: 'Serie\'s name/ID',
+			fr: 'le nom ou ID de la série'
+		},
 		required: true,
 		type: CommandOptionType.STRING
 	}]
 
-	public async execute({ args }: Context) {
-		const tcgdex = new TCGdex('en')
+	public async execute({ args, lang }: Context) {
+		const tcgdex = new TCGdex(getTCGdexLang(lang))
 		const name = args.join(' ')
 		const tmp = await tcgdex.fetch('series')
 		const series = tmp?.filter((s) => s.name.toLowerCase().includes(name.toLowerCase()) || s.id.includes(name.toLowerCase()))
@@ -25,7 +38,7 @@ export default class FindSerie implements Command {
 			return new Message('Serie not found! :(')
 		}
 
-		if (series.length > 1) {
+		if (series.length > 1 && !series.find((it) => it.id === name)) {
 			const msg = new Message('Multiple series were found with this name')
 			let select = new Select('findserie')
 				.placeholder('Select the serie you want')

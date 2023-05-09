@@ -5,6 +5,7 @@ import BaseEmbed from './BaseEmbed'
 /**
  * Transform Card to Discord Embeds
  */
+// eslint-disable-next-line complexity
 export default function(card: Card) {
 	const embed = BaseEmbed()
 
@@ -64,24 +65,24 @@ export default function(card: Card) {
 	if (card.abilities) {
 		embed.addField(
 			'Abilities',
-			card.abilities.map((a) => `${a.type} - **${a.name}**\n${a.effect}`).join('\n'),
+			card.abilities.map((ability) => `${ability.type} - **${ability.name}**\n${ability.effect}`).join('\n'),
 			false
 		)
 	}
 	if (card.attacks) {
 		embed.addField(
 			'Attacks',
-			card.attacks.map((a) => {
+			card.attacks.map((attack) => {
 				let text = ''
-				if (a.cost) {
-					text += replaceTypesByEmojis(a.cost?.join(' ')) + ' '
+				if (attack.cost) {
+					text += replaceTypesByEmojis(attack.cost?.join(' ')) + ' '
 				}
-				text += `**${a.name}**`
-				if (a.damage) {
-					text += ` - ${a.damage}`
+				text += `**${attack.name}**`
+				if (attack.damage) {
+					text += ` - ${attack.damage}`
 				}
-				if (a.effect) {
-					text += `\n${a.effect}`
+				if (attack.effect) {
+					text += `\n${attack.effect}`
 				}
 				return text
 			}).join('\n'),

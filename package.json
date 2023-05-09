@@ -21,7 +21,7 @@
 		"typescript": "^5"
 	},
 	"scripts": {
-		"dev": "ts-node-dev src/index.ts",
+		"dev": "ts-node-dev -T src/index.ts",
 		"build": "tsc --project tsconfig.json",
 		"start": "node dist/index.js",
 		"lint": "eslint src --ext .ts"

@@ -4,20 +4,33 @@ import Button from '../Components/Components/Button'
 import Select from '../Components/Components/Select'
 import Message from '../Components/Message'
 import SetEmbed from '../Embeds/SetEmbed'
+import { getTCGdexLang } from '../Utils'
 import { Command, CommandOptionType, CommandOptions, Context } from '../interfaces'
 
 export default class FindSet implements Command {
-	public name = 'findset'
-	public description = 'Find and display a set informations'
+	public name = {
+		en: 'findset',
+		fr: 'trouverset'
+	}
+	public description = {
+		en: 'Find and display a set informations',
+		fr: 'Trouver et afficher les informations du set'
+	}
 	public options: Array<CommandOptions> = [{
-		name: 'name',
-		description: 'Set name/ID',
+		name: {
+			en: 'name',
+			fr: 'nom'
+		},
+		description: {
+			en: 'Set name/ID',
+			fr: 'le nom/ID du set'
+		},
 		required: true,
 		type: CommandOptionType.STRING
 	}]
 
-	public async execute({ args }: Context) {
-		const tcgdex = new TCGdex('en')
+	public async execute({ args, lang }: Context) {
+		const tcgdex = new TCGdex(getTCGdexLang(lang))
 		const name = args.join(' ')
 		const tmp = await tcgdex.fetch('sets')
 		const sets = tmp?.filter((set) => set.name.toLowerCase().includes(name.toLowerCase()) || set.id === name)
