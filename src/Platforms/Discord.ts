@@ -374,7 +374,6 @@ export default class Discord implements Platform {
 	}
 
 	private processRow = (row: ActionRow, idx: number) => {
-		console.log(row, idx, row.components())
 		const components = row.components().map(this.processComponent(idx)).flat(1)
 		const sub: Array<typeof components> = []
 		for (let cIdx = 0; cIdx < components.length; cIdx += 5) {
@@ -383,7 +382,6 @@ export default class Discord implements Platform {
 				tmp = [tmp[0]]
 				cIdx -= 4
 			}
-			console.log(tmp)
 			// if (tmp.find((comp) => comp instanceof Select) && tmp.length > 1) {
 			// 	logger.warn('Component can\'t be added because there is already another component in')
 			// }

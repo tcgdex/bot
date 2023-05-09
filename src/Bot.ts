@@ -59,7 +59,6 @@ export default class Bot {
 	}
 
 	public async handleCommand(req: Context): Promise<Message | string> {
-		console.log(req)
 		const cmd = await this.findCommandToExecute(req)
 
 		if (typeof cmd === 'string') {
