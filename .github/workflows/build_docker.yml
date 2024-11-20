@@ -39,14 +39,14 @@ jobs:
 
     - name: Login to Docker Hub
       uses: docker/login-action@v3
-      if: ${{ env.PUBLISH }}
+      if: ${{ env.PUBLISH == 'true' }}
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Login to Github Packages
       uses: docker/login-action@v3
-      if: ${{ env.PUBLISH }}
+      if: ${{ env.PUBLISH == 'true' }}
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -59,7 +59,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        push: ${{ env.PUBLISH }}
+        push: ${{ env.PUBLISH == 'true' }}
         file: ./Dockerfile
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
